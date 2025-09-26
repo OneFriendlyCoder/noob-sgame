@@ -14,13 +14,12 @@ async fn main() {
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
-
     loop {
         clear_background(BLUE);
         set_camera(&camera);
         draw_cube(
             vec3(0.0, 0.0, screen_depth),
-            vec3(4.0, 4.0, 4.0),
+            vec3(1.0, 1.0, 4.0),
             None,
             RED,
         );
@@ -31,21 +30,54 @@ async fn main() {
             None,
             DARKGRAY,
         );
-
+        draw_cube(
+            vec3(-8.0, -1.0, 0.0),
+            vec3(4.0, 0.1, screen_depth),
+            None,
+            BLACK,
+        );
         draw_cube(
             vec3(-30.0, -1.0, 0.0),
             vec3(40.0, 0.1, screen_depth),
             None,
             GREEN,
         );
-
+        draw_cube(
+            vec3(8.0, -1.0, 0.0),
+            vec3(4.0, 0.1, screen_depth),
+            None,
+            BLACK,
+        );
         draw_cube(
             vec3(30.0, -1.0, 0.0),
             vec3(40.0, 0.1, screen_depth),
             None,
             GREEN,
         );
-
+        draw_cube(
+            vec3(-70.0, -1.0, 0.0),
+            vec3(40.0, 0.1, screen_depth),
+            None,
+            RED,
+        );
+        draw_cube(
+            vec3(70.0, -1.0, 0.0),
+            vec3(40.0, 0.1, screen_depth),
+            None,
+            RED,
+        );
+        draw_cube(
+            vec3(-75.0, -1.0, 0.0),
+            vec3(50.0, 0.1, screen_depth),
+            None,
+            RED,
+        );
+        draw_cube(
+            vec3(75.0, -1.0, 0.0),
+            vec3(50.0, 0.1, screen_depth),
+            None,
+            RED,
+        );
         next_frame().await;
     }
 }
