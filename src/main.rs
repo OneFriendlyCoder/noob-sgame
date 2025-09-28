@@ -1,5 +1,7 @@
-use macroquad::prelude::*;
+mod utilis;
 
+use macroquad::prelude::*;
+use utilis::{Movement, get_movement};
 #[macroquad::main("NOOB's GAME")]
 async fn main() {
     set_fullscreen(true);
@@ -12,7 +14,7 @@ async fn main() {
     let grass_half = 0.09;
     let red_half = 0.32;
 
-    let camera = Camera3D {
+    let mut camera = Camera3D {
         position: vec3(0.0, screen_h*0.01, 0.0),
         target: vec3(0.0, 0.0, screen_d),
         up: vec3(0.0, 1.0, 0.0),
@@ -68,6 +70,20 @@ async fn main() {
             None,
             RED,
         );
+
+
+        //camera movement with keyboard
+        if let Some(m) = get_movement(){
+            match m{
+                Movement::W => camera.position.z+=2.0,
+                Movement::A => camera.position.x+=2.0,
+                Movement::S => camera.position.z-=2.0,
+                Movement::D => camera.position.x-=2.0,
+            }
+        }
+
+        //camera movement with mouse
+        
 
         next_frame().await;
     }
