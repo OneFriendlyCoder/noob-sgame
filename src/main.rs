@@ -71,24 +71,38 @@ async fn main() {
             RED,
         );
 
+        // mouse movement
+        let (mx, my) = mouse_position();
+        let ndc_x = (mx / screen_w) * 2.0 - 1.0;
+        let ndc_y = 1.0 - (my / screen_h) * 2.0;
+        let world_x = ndc_x * 10.0;
+        let world_y = if 0.0 < (ndc_y * 10.0) {ndc_y*10.0} else {0.0};
+        camera.target = vec3(world_x, world_y,0.0 );
+        
 
         //camera movement with keyboard
         if let Some(m) = get_movement(){
+            let forward = (camera.target - camera.position).normalize();
+            let right = forward.cross(camera.up).normalize();
             match m{
-                Movement::W => camera.position.z+=2.0,
-                Movement::A => camera.position.x+=2.0,
-                Movement::S => camera.position.z-=2.0,
-                Movement::D => camera.position.x-=2.0,
+                Movement::W => {
+                    camera.position += forward;
+                    camera.target += forward;  
+                },
+                Movement::A => {
+                    camera.position += right;
+                    camera.target += right;                      
+                },
+                Movement::S => {
+                    camera.position -= forward;
+                    camera.target -= forward;  
+                },
+                Movement::D => {
+                    camera.position -= right;
+                    camera.target -= right;  
+                },
             }
         }
-
-        if is_mouse_button_pressed(MouseButton::Left) {
-            let (mx, my) = mouse_position();
-            let ndc_x = (mx / screen_w) * 2.0 - 1.0;
-            let ndc_y = 1.0 - (my / screen_h) * 2.0;
-            camera.position = vec3(ndc_x * 10.0, 0.0, ndc_y * 10.0);
-        }
-
 
 
 
