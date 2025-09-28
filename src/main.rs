@@ -15,7 +15,7 @@ async fn main() {
     let red_half = 0.32;
 
     let mut camera = Camera3D {
-        position: vec3(0.0, screen_h*0.01, 0.0),
+        position: vec3(0.0, screen_h*0.1, 0.0),
         target: vec3(0.0, 0.0, screen_d),
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
@@ -72,35 +72,46 @@ async fn main() {
         );
 
         // mouse movement
-        let (mx, my) = mouse_position();
-        let ndc_x = (mx / screen_w) * 2.0 - 1.0;
-        let ndc_y = 1.0 - (my / screen_h) * 2.0;
-        let world_x = ndc_x * 10.0;
-        let world_y = if 0.0 < (ndc_y * 10.0) {ndc_y*10.0} else {0.0};
-        camera.target = vec3(world_x, world_y,0.0 );
+        // let (mx, my) = mouse_position();
+        // let ndc_x = (mx / screen_w) * 2.0 - 1.0;
+        // let ndc_y = 1.0 - (my / screen_h) * 2.0;
+        // let world_x = ndc_x * 10.0;
+        // let world_y = if 0.0 < (ndc_y * 10.0) {ndc_y*10.0} else {0.0};
         
+        let (mx, my) = mouse_position();
+        let world_x = mx / screen_w * screen_w as f32 * 2.0 - screen_w as f32;
+        let world_y = screen_h as f32 - my / screen_h * screen_h as f32 * 2.0;
+        camera.target = vec3(world_x, world_y,0.0 );
+
+    
 
         //camera movement with keyboard
         if let Some(m) = get_movement(){
-            let forward = (camera.target - camera.position).normalize();
-            let right = forward.cross(camera.up).normalize();
+            let mut forward = camera.target - camera.position;
+            forward.y = 0.0;
+            let forward = forward.normalize();
+            
+            // let mut right = forward.cross(camera.up);
+            // right.y = 0.0;
+            // let right = right.normalize();
+
             match m{
                 Movement::W => {
                     camera.position += forward;
                     camera.target += forward;  
                 },
-                Movement::A => {
-                    camera.position += right;
-                    camera.target += right;                      
-                },
+                // Movement::A => {
+                //     camera.position += right;
+                //     camera.target += right;                      
+                // },
                 Movement::S => {
                     camera.position -= forward;
                     camera.target -= forward;  
                 },
-                Movement::D => {
-                    camera.position -= right;
-                    camera.target -= right;  
-                },
+                // Movement::D => {
+                //     camera.position -= right;
+                //     camera.target -= right;  
+                // },
             }
         }
 
