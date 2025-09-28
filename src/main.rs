@@ -2,10 +2,10 @@ mod utilis;
 
 use macroquad::prelude::*;
 use utilis::{Movement, get_movement};
+
 #[macroquad::main("NOOB's GAME")]
 async fn main() {
     // set_fullscreen(true);
-
     let screen_h: f32 = screen_height();
     let screen_w: f32 = screen_width();
     let screen_d: f32 = screen_h.max(screen_w);
@@ -14,9 +14,11 @@ async fn main() {
     let grass_half = 0.09;
     let red_half = 0.32;
 
+    const MOUSE_SENSITIVITY: f32 = 5.0;
+    let mut yaw: f32 = -std::f32::consts::FRAC_PI_2;
     let mut camera = Camera3D {
-        position: vec3(0.0, screen_h*0.1, 0.0),
-        target: vec3(0.0, 0.0, screen_d),
+        position: vec3(0.0, screen_h * 0.001, 0.0),
+        target: vec3(0.0, 0.0, 0.0),
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
@@ -24,6 +26,7 @@ async fn main() {
     loop {
         clear_background(BLUE);
         set_camera(&camera);
+
 
         draw_cube(
             vec3(0.0, -1.0, 0.0),
@@ -71,51 +74,25 @@ async fn main() {
             RED,
         );
 
-        // mouse movement
-        // let (mx, my) = mouse_position();
-        // let ndc_x = (mx / screen_w) * 2.0 - 1.0;
-        // let ndc_y = 1.0 - (my / screen_h) * 2.0;
-        // let world_x = ndc_x * 10.0;
-        // let world_y = if 0.0 < (ndc_y * 10.0) {ndc_y*10.0} else {0.0};
-        
-        let (mx, my) = mouse_position();
-        let world_x = mx / screen_w * screen_w as f32 * 2.0 - screen_w as f32;
-        let world_y = screen_h as f32 - my / screen_h * screen_h as f32 * 2.0;
-        camera.target = vec3(world_x, world_y,0.0 );
 
-    
-
-        //camera movement with keyboard
-        if let Some(m) = get_movement(){
-            let mut forward = camera.target - camera.position;
-            forward.y = 0.0;
-            let forward = forward.normalize();
-            
-            // let mut right = forward.cross(camera.up);
-            // right.y = 0.0;
-            // let right = right.normalize();
-
-            match m{
+        let delta_x = mouse_delta_position().x;
+        yaw += delta_x * MOUSE_SENSITIVITY;
+        let forward_direction = vec3(yaw.cos(), 0.0, yaw.sin());
+        camera.target = camera.position + forward_direction;
+        if let Some(m) = get_movement() {
+            let mut forward = (camera.target - camera.position).normalize();
+            forward.y = 0.0; 
+            match m {
                 Movement::W => {
                     camera.position += forward;
-                    camera.target += forward;  
-                },
-                // Movement::A => {
-                //     camera.position += right;
-                //     camera.target += right;                      
-                // },
+                    camera.target += forward;
+                }
                 Movement::S => {
                     camera.position -= forward;
-                    camera.target -= forward;  
-                },
-                // Movement::D => {
-                //     camera.position -= right;
-                //     camera.target -= right;  
-                // },
+                    camera.target -= forward;
+                }
             }
         }
-
-
 
         next_frame().await;
     }
