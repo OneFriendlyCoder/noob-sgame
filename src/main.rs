@@ -5,17 +5,17 @@ use utilis::{Movement, get_movement};
 
 #[macroquad::main("NOOB's GAME")]
 async fn main() {
-    // set_fullscreen(true);
     let screen_h: f32 = screen_height();
     let screen_w: f32 = screen_width();
     let screen_d: f32 = screen_h.max(screen_w);
+
     let road_half = 0.01;
     let lane_half = 0.005;
     let grass_half = 0.09;
     let red_half = 0.32;
 
-    const MOUSE_SENSITIVITY: f32 = 5.0;
-    let mut yaw: f32 = -std::f32::consts::FRAC_PI_2;
+    const MOUSE_SENSITIVITY: f32 = 0.005;
+
     let mut camera = Camera3D {
         position: vec3(0.0, screen_h * 0.001, 0.0),
         target: vec3(0.0, 0.0, 0.0),
@@ -26,7 +26,6 @@ async fn main() {
     loop {
         clear_background(BLUE);
         set_camera(&camera);
-
 
         draw_cube(
             vec3(0.0, -1.0, 0.0),
@@ -74,25 +73,20 @@ async fn main() {
             RED,
         );
 
+        let screen_center = vec2(screen_w / 2.0, screen_h / 2.0);
+        let mouse_pos_tuple = mouse_position();
+        let mouse_pos = vec2(mouse_pos_tuple.0, mouse_pos_tuple.1);
+        let offset = mouse_pos - screen_center;
 
-        let delta_x = mouse_delta_position().x;
-        yaw += delta_x * MOUSE_SENSITIVITY;
-        let forward_direction = vec3(yaw.cos(), 0.0, yaw.sin());
-        camera.target = camera.position + forward_direction;
+        let yaw = -(offset.x) * MOUSE_SENSITIVITY;
+        let forward = vec3(yaw.cos(), 0.0, yaw.sin());
         if let Some(m) = get_movement() {
-            let mut forward = (camera.target - camera.position).normalize();
-            forward.y = 0.0; 
             match m {
-                Movement::W => {
-                    camera.position += forward;
-                    camera.target += forward;
-                }
-                Movement::S => {
-                    camera.position -= forward;
-                    camera.target -= forward;
-                }
+                Movement::W => camera.position += forward,
+                Movement::S => camera.position -= forward,
             }
         }
+        camera.target = camera.position + forward;
 
         next_frame().await;
     }
