@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-struct Player {
+pub struct Player {
     health: u32,
     name: String,
     weapon: String,
