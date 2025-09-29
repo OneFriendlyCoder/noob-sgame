@@ -3,8 +3,9 @@ mod utilis;
 use macroquad::prelude::*;
 use utilis::{Movement, get_movement};
 
-#[macroquad::main("NOOB's GAME")]
+#[macroquad::main("RUSTY GAME")]
 async fn main() {
+    set_pc_assets_folder("./assets/textures/");
     let screen_h: f32 = screen_height();
     let screen_w: f32 = screen_width();
     let screen_d: f32 = screen_h.max(screen_w);
@@ -22,11 +23,13 @@ async fn main() {
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
+    let texture: Texture2D = load_texture("crosshair.png").await.unwrap();
 
     loop {
         clear_background(BLUE);
         set_camera(&camera);
 
+        // starting 3D drawing
         draw_cube(
             vec3(0.0, -1.0, 0.0),
             vec3(screen_w * road_half * 2.0, 0.1, screen_d),
@@ -73,7 +76,7 @@ async fn main() {
             RED,
         );
 
-        let screen_center = vec2(screen_w / 2.0, screen_h / 2.0);
+        let screen_center = vec2(screen_w / 2.0, screen_h / 2.0); // screen_center : is the mid point of the gaming window
         let mouse_pos_tuple = mouse_position();
         let mouse_pos = vec2(mouse_pos_tuple.0, mouse_pos_tuple.1);
         let offset = mouse_pos - screen_center;
@@ -87,6 +90,25 @@ async fn main() {
             }
         }
         camera.target = camera.position + forward;
+
+
+        // starting 2D drawing
+        set_default_camera();   // necessary for drawing 2D UI on the scree, switches drawing context to 2D, all coordinates are screen-pixels
+        
+        //crosshair 
+        let size:Vec2 = vec2(texture.width()/20.0, texture.height()/20.0);
+        let x = (screen_width() - size.x) / 2.0;
+        let y = (screen_height() - size.y) / 2.0;
+        draw_texture_ex(
+            &texture,
+            x,
+            y,
+            RED,
+            DrawTextureParams {
+                dest_size: Some(size),
+                ..Default::default()
+            },
+        );
 
         next_frame().await;
     }
