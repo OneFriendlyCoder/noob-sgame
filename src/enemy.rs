@@ -46,8 +46,8 @@ impl Enemies{
         for i in 0..size{
             let enemy = Enemy::new(
                 "enemy/type1.png",
-                vec3(50.0 * i as f32, 0.0, 0.0),
-                vec2(32.0, 32.0),
+                vec3(50.0 * i as f32, 0.0, 100.0),
+                vec2(10.0, 10.0),
             ).await;
             enemies.push(enemy);
         }
@@ -61,6 +61,3 @@ impl Enemies{
         }
     }
 }
-
-
-// draw texture function would be for the vector of Enemy
