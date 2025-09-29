@@ -1,11 +1,13 @@
 mod utilis;
+mod enemy;
 
 use macroquad::prelude::*;
 use utilis::{Movement, get_movement};
+use enemy::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
-    set_pc_assets_folder("./assets/textures/");
+    set_pc_assets_folder("./assets/");
     let screen_h: f32 = screen_height();
     let screen_w: f32 = screen_width();
     let screen_d: f32 = screen_h.max(screen_w);
@@ -23,7 +25,7 @@ async fn main() {
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
-    let texture: Texture2D = load_texture("crosshair.png").await.unwrap();
+    let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
 
     loop {
         clear_background(BLUE);
@@ -92,6 +94,12 @@ async fn main() {
         camera.target = camera.position + forward;
 
 
+        //drawing enemies
+        let enemies = Enemies::init_enemies(3).await;
+        enemies.draw_enemies();
+
+
+
         // starting 2D drawing
         set_default_camera();   // necessary for drawing 2D UI on the scree, switches drawing context to 2D, all coordinates are screen-pixels
         
@@ -110,16 +118,18 @@ async fn main() {
             },
         );
 
-        let text = "RUSTY KRUNKER";
-        let font_size = 100.0;
-        let color = RED;
-        let text_dimensions = measure_text(text, None, font_size as u16, 1.0);
-        let text_width = text_dimensions.width;
 
-        let x = (screen_width() - text_width) / 2.0;
-        let y = font_size + 10.0;
+        // // GAME NAME
+        // let text = "RUSTY KRUNKER";
+        // let font_size = 100.0;
+        // let color = RED;
+        // let text_dimensions = measure_text(text, None, font_size as u16, 1.0);
+        // let text_width = text_dimensions.width;
 
-        draw_text(text, x, y, font_size, color);
+        // let x = (screen_width() - text_width) / 2.0;
+        // let y = font_size + 10.0;
+
+        // draw_text(text, x, y, font_size, color);
 
         next_frame().await;
     }
