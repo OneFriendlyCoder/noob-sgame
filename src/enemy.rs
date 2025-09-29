@@ -2,17 +2,18 @@ use macroquad::prelude::*;
 
 #[derive(Debug)]
 pub struct Enemy{
-    texture: Texture2D,
+    // texture: Texture2D,
     position: Vec3,
     size: Vec3,
     health: i32,
 }
 
 impl Enemy{             
-    async fn new(texture_path: &str, position: Vec3, size: Vec3) -> Self {            //constructor function
-        let texture = load_texture(texture_path).await.unwrap();
+    // async fn new(texture_path: &str, position: Vec3, size: Vec3) -> Self {            //constructor function
+    async fn new(position: Vec3, size: Vec3) -> Self {    
+        // let texture = load_texture(texture_path).await.unwrap();
         Self {
-            texture,
+            // texture,
             position,
             size,
             health : 100,
@@ -43,8 +44,8 @@ impl Enemies{
             let x = rand::gen_range(xmin,xmax);
             let z = rand::gen_range(zmin,zmax);
             let enemy = Enemy::new(
-                "enemy/type1.png",
-                vec3(x, 0.0, z),
+                // "enemy/type1.png",
+                vec3(x, 0.5, z),
                 vec3(10.0, 10.0, 10.0),
             ).await;
             enemies.push(enemy);

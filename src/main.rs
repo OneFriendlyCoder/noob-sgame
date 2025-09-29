@@ -29,7 +29,7 @@ async fn main() {
         ..Default::default()
     };
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
-    let enemies = Enemies::init_enemies(30, x_min, x_max, z_min, z_max).await;
+    let enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
 
     loop {
         clear_background(BLUE);
