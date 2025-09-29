@@ -4,12 +4,12 @@ use macroquad::prelude::*;
 pub struct Enemy{
     texture: Texture2D,
     position: Vec3,
-    size: Vec2,
+    size: Vec3,
     health: i32,
 }
 
 impl Enemy{             
-    async fn new(texture_path: &str, position: Vec3, size: Vec2) -> Self {            //constructor function
+    async fn new(texture_path: &str, position: Vec3, size: Vec3) -> Self {            //constructor function
         let texture = load_texture(texture_path).await.unwrap();
         Self {
             texture,
@@ -20,16 +20,12 @@ impl Enemy{
     }
 
     fn draw(&self){
-        draw_texture_ex(
-            &self.texture,
-            self.position.x,
-            self.position.y,
-            WHITE,
-            DrawTextureParams{
-                dest_size: Some(self.size),
-                ..Default::default()
-            },
-        );
+        draw_cube(
+            self.position,
+            self.size,
+            None,
+            RED,
+        )
     }
 }
 
@@ -41,13 +37,15 @@ pub struct Enemies {
 
 impl Enemies{
     // init enemies
-    pub async fn init_enemies(size: i32) -> Self {
+    pub async fn init_enemies(size: i32, xmin:f32, xmax:f32, zmin:f32, zmax:f32) -> Self {
         let mut enemies: Vec<Enemy> = Vec::new();
-        for i in 0..size{
+        for _ in 0..size{
+            let x = rand::gen_range(xmin,xmax);
+            let z = rand::gen_range(zmin,zmax);
             let enemy = Enemy::new(
                 "enemy/type1.png",
-                vec3(50.0 * i as f32, 0.0, 100.0),
-                vec2(10.0, 10.0),
+                vec3(x, 0.0, z),
+                vec3(10.0, 10.0, 10.0),
             ).await;
             enemies.push(enemy);
         }

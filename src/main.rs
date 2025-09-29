@@ -11,11 +11,14 @@ async fn main() {
     let screen_h: f32 = screen_height();
     let screen_w: f32 = screen_width();
     let screen_d: f32 = screen_h.max(screen_w);
-
     let road_half = 0.01;
     let lane_half = 0.005;
     let grass_half = 0.09;
     let red_half = 0.32;
+    let x_min = -screen_w * (road_half + lane_half + grass_half + red_half);
+    let x_max =  screen_w * (road_half + lane_half + grass_half + red_half);
+    let z_min = -screen_d / 2.0;
+    let z_max =  screen_d / 2.0;
 
     const MOUSE_SENSITIVITY: f32 = 0.005;
 
@@ -26,56 +29,69 @@ async fn main() {
         ..Default::default()
     };
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
+    let enemies = Enemies::init_enemies(30, x_min, x_max, z_min, z_max).await;
 
     loop {
         clear_background(BLUE);
         set_camera(&camera);
 
         // starting 3D drawing
+        // draw_cube(
+        //     vec3(0.0, -1.0, 0.0),
+        //     vec3(screen_w * road_half * 2.0, 0.1, screen_d),
+        //     None,
+        //     DARKGRAY,
+        // );
+
+        // draw_cube(
+        //     vec3(-screen_w * (road_half + lane_half / 2.0), -1.0, 0.0),
+        //     vec3(screen_w * lane_half, 0.1, screen_d),
+        //     None,
+        //     BLACK,
+        // );
+        // draw_cube(
+        //     vec3(screen_w * (road_half + lane_half / 2.0), -1.0, 0.0),
+        //     vec3(screen_w * lane_half, 0.1, screen_d),
+        //     None,
+        //     BLACK,
+        // );
+
+        // draw_cube(
+        //     vec3(-screen_w * (road_half + lane_half + grass_half / 2.0), -1.0, 0.0),
+        //     vec3(screen_w * grass_half, 0.1, screen_d),
+        //     None,
+        //     GREEN,
+        // );
+        // draw_cube(
+        //     vec3(screen_w * (road_half + lane_half + grass_half / 2.0), -1.0, 0.0),
+        //     vec3(screen_w * grass_half, 0.1, screen_d),
+        //     None,
+        //     GREEN,
+        // );
+
+        // draw_cube(
+        //     vec3(-screen_w * (road_half + lane_half + grass_half + red_half / 2.0), -1.0, 0.0),
+        //     vec3(screen_w * red_half, 0.1, screen_d),
+        //     None,
+        //     RED,
+        // );
+        // draw_cube(
+        //     vec3(screen_w * (road_half + lane_half + grass_half + red_half / 2.0), -1.0, 0.0),
+        //     vec3(screen_w * red_half, 0.1, screen_d),
+        //     None,
+        //     RED,
+        // );
+
+
         draw_cube(
             vec3(0.0, -1.0, 0.0),
-            vec3(screen_w * road_half * 2.0, 0.1, screen_d),
+            vec3(
+                screen_w * (road_half*2.0 + 2.0*lane_half + 2.0*grass_half + 2.0*red_half), 
+                0.1, 
+                screen_d
+            ),
             None,
             DARKGRAY,
-        );
-
-        draw_cube(
-            vec3(-screen_w * (road_half + lane_half / 2.0), -1.0, 0.0),
-            vec3(screen_w * lane_half, 0.1, screen_d),
-            None,
-            BLACK,
-        );
-        draw_cube(
-            vec3(screen_w * (road_half + lane_half / 2.0), -1.0, 0.0),
-            vec3(screen_w * lane_half, 0.1, screen_d),
-            None,
-            BLACK,
-        );
-
-        draw_cube(
-            vec3(-screen_w * (road_half + lane_half + grass_half / 2.0), -1.0, 0.0),
-            vec3(screen_w * grass_half, 0.1, screen_d),
-            None,
-            GREEN,
-        );
-        draw_cube(
-            vec3(screen_w * (road_half + lane_half + grass_half / 2.0), -1.0, 0.0),
-            vec3(screen_w * grass_half, 0.1, screen_d),
-            None,
-            GREEN,
-        );
-
-        draw_cube(
-            vec3(-screen_w * (road_half + lane_half + grass_half + red_half / 2.0), -1.0, 0.0),
-            vec3(screen_w * red_half, 0.1, screen_d),
-            None,
-            RED,
-        );
-        draw_cube(
-            vec3(screen_w * (road_half + lane_half + grass_half + red_half / 2.0), -1.0, 0.0),
-            vec3(screen_w * red_half, 0.1, screen_d),
-            None,
-            RED,
         );
 
         let screen_center = vec2(screen_w / 2.0, screen_h / 2.0); // screen_center : is the mid point of the gaming window
@@ -95,13 +111,12 @@ async fn main() {
 
 
         //drawing enemies
-        let enemies = Enemies::init_enemies(3).await;
+        // let enemies = Enemies::init_enemies(3, x_min, x_max, z_min, z_max).await;
         enemies.draw_enemies();
 
 
-
         // starting 2D drawing
-        set_default_camera();   // necessary for drawing 2D UI on the scree, switches drawing context to 2D, all coordinates are screen-pixels
+        set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels
         
         //crosshair 
         let size:Vec2 = vec2(texture.width()/20.0, texture.height()/20.0);
