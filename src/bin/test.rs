@@ -52,7 +52,7 @@ pub fn parse_between_obj(obj_vec: &Vec<String>,f: &str, sindex: usize, eindex:Op
             if re_v.is_match(&line) {
                 let parts: Vec<f32> = line
                     .split_whitespace()
-                    .skip(1) // skip the "v"
+                    .skip(1)
                     .map(|x| x.parse::<f32>().unwrap())
                     .collect();
                 position.push(Vec3 { x: parts[0], y: parts[1], z: parts[2] });
@@ -82,9 +82,25 @@ pub fn parse_between_obj(obj_vec: &Vec<String>,f: &str, sindex: usize, eindex:Op
 
                 for part in line.split_whitespace().skip(1) {
                     let indices: Vec<&str> = part.split('/').collect();
-                    v_idx.push(indices[0].parse::<usize>().unwrap());
-                    vt_idx.push(indices[1].parse::<usize>().unwrap());
-                    vn_idx.push(indices[2].parse::<usize>().unwrap());
+                    v_idx.push(indices.get(0).unwrap_or(&"0").parse::<usize>().unwrap_or(0));
+                    if let Some(vt_str) = indices.get(1) {
+                        if !vt_str.is_empty() {
+                            vt_idx.push(vt_str.parse::<usize>().unwrap_or(0));
+                        } else {
+                            vt_idx.push(0);
+                        }
+                    } else {
+                        vt_idx.push(0);
+                    }
+                    if let Some(vn_str) = indices.get(2) {
+                        if !vn_str.is_empty() {
+                            vn_idx.push(vn_str.parse::<usize>().unwrap_or(0));
+                        } else {
+                            vn_idx.push(0);
+                        }
+                    } else {
+                        vn_idx.push(0);
+                    }
                 }
                 faces.push((v_idx, vt_idx, vn_idx));
             }
@@ -94,59 +110,80 @@ pub fn parse_between_obj(obj_vec: &Vec<String>,f: &str, sindex: usize, eindex:Op
     ObjectStructure{position, uvs, normals, faces}
 }
 
-pub fn create_mesh(filepath: &str) -> io::Result<()> {
+pub fn create_mesh(filepath: &str) -> io::Result<Vec<Mesh>> {
     let file = File::open(filepath)?;
     let reader = BufReader::new(&file);
-    let re = Regex::new(r"^o\S*").unwrap();
-    let mut mesh_count = 0;
+    let re = Regex::new(r"^o\s*").unwrap();
     let mut object_vec: Vec<String> = Vec::new();
-
     for line in reader.lines() {
         let line = line?;
         if re.is_match(&line){
-            mesh_count+=1;
             object_vec.push(line);
         }
-    }    
-
-    for i in 0..mesh_count {
-        let eindex = if i + 1 < mesh_count {
-            Some(i + 1)
-        } else {
-            None
-        };
-        parse_between_obj(&object_vec, filepath, i, eindex);
     }
 
+    let mesh_count = object_vec.len();
+    let mut meshes: Vec<Mesh> = Vec::new();
+    for i in 0..mesh_count {
+        let eindex = if i + 1 < mesh_count { Some(i + 1) } else { None };
+        let obj = parse_between_obj(&object_vec, filepath, i, eindex);
 
-    Ok(())
+        let mut vertices: Vec<Vertex> = Vec::new();
+        let mut indices: Vec<u16> = Vec::new();
+
+            for face in &obj.faces {
+                let (v_idx, vt_idx, vn_idx) = face;
+                for j in 0..v_idx.len() {
+                    if v_idx[j] == 0 || v_idx[j] > obj.position.len() {
+                        continue; // skip invalid vertex index
+                    }
+
+                    let vertex = Vertex {
+                        position: if v_idx[j] > 0 && v_idx[j] - 1 < obj.position.len() {
+                            obj.position[v_idx[j] - 1]
+                        } else {
+                            Vec3::ZERO
+                        },
+                        uv: if vt_idx[j] > 0 && vt_idx[j] - 1 < obj.uvs.len() {
+                            obj.uvs[vt_idx[j] - 1]
+                        } else {
+                            Vec2::ZERO
+                        },
+                        normal: if vn_idx[j] > 0 && vn_idx[j] - 1 < obj.normals.len() {
+                            obj.normals[vn_idx[j] - 1]
+                        } else {
+                            Vec4::ZERO
+                        },
+                        color: [255, 255, 255, 255],
+                    };
+
+                    println!("v_idx={} len={}", v_idx[j], obj.position.len());
+                    vertices.push(vertex);
+                    indices.push(vertices.len() as u16 - 1);
+                }
+            }
+
+        let mesh = Mesh {
+            vertices,
+            indices,
+            texture: None,
+        };
+
+        meshes.push(mesh);
+    }
+
+    Ok(meshes)
 }
 
-fn main() -> io::Result<()> {
-    create_mesh("D:/game0/assets/enemy/trex.obj")?;
-    Ok(())
+#[macroquad::main("OBJ Mesh Viewer")]
+async fn main() {
+    let meshes = create_mesh("D:/game0/assets/enemy/trex.obj").unwrap();
+
+    loop {
+        clear_background(BLACK);
+        for mesh in &meshes {
+            draw_mesh(mesh);
+        }
+        next_frame().await;
+    }
 }
-
-
-
-
-// struct ObjData {
-//     positions: Vec<Vec3>, // all v
-//     uvs: Vec<Vec2>,       // all vt
-//     normals: Vec<Vec4>,   // all vn
-// }
-
-// // final mesh vertices
-// let mut vertices: Vec<Vertex> = Vec::new();
-
-// for face in faces {
-//     for (v_idx, vt_idx, vn_idx) in face {
-//         let vertex = Vertex {
-//             position: obj.positions[v_idx - 1], // obj indices are 1-based
-//             uv: obj.uvs[vt_idx - 1],
-//             normal: obj.normals[vn_idx - 1],
-//             color: [255, 255, 255, 255], // default
-//         };
-//         vertices.push(vertex);
-//     }
-// }
