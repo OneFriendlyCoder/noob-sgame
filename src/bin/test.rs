@@ -23,9 +23,9 @@ pub fn parse_between_obj(obj_vec: &Vec<String>,f: &str, sindex: usize, eindex:Op
     
     let re_start = Regex::new(&regex::escape(startline)).unwrap();
     let re_end = endline.as_ref().map(|e| Regex::new(&regex::escape(e)).unwrap());
-    let re_v= Regex::new(r"^v\S*").unwrap();
-    let re_vt= Regex::new(r"^vt\S*").unwrap();
-    let re_vn= Regex::new(r"^vn\S*").unwrap();
+    let re_v  = Regex::new(r"^v\s+").unwrap();   
+    let re_vt = Regex::new(r"^vt\s+").unwrap();
+    let re_vn = Regex::new(r"^vn\s+").unwrap();
     let re_f = Regex::new(r"^f\s+").unwrap();
     
     
@@ -131,37 +131,36 @@ pub fn create_mesh(filepath: &str) -> io::Result<Vec<Mesh>> {
         let mut vertices: Vec<Vertex> = Vec::new();
         let mut indices: Vec<u16> = Vec::new();
 
-            for face in &obj.faces {
-                let (v_idx, vt_idx, vn_idx) = face;
-                for j in 0..v_idx.len() {
-                    if v_idx[j] == 0 || v_idx[j] > obj.position.len() {
-                        continue; // skip invalid vertex index
-                    }
+        for face in &obj.faces {
+            let (v_idx, vt_idx, vn_idx) = face;
+            if v_idx.len() < 3 { continue; }
+            for k in 1..(v_idx.len() - 1) {
+                let indices_triplet = [0, k, k + 1];
 
+                for &idx in &indices_triplet {
+                    let vi = v_idx[idx];
+                    if vi == 0 || vi > obj.position.len() {
+                        continue;
+                    }
                     let vertex = Vertex {
-                        position: if v_idx[j] > 0 && v_idx[j] - 1 < obj.position.len() {
-                            obj.position[v_idx[j] - 1]
-                        } else {
-                            Vec3::ZERO
-                        },
-                        uv: if vt_idx[j] > 0 && vt_idx[j] - 1 < obj.uvs.len() {
-                            obj.uvs[vt_idx[j] - 1]
+                        position: obj.position[vi - 1],
+                        uv: if vt_idx[idx] > 0 && vt_idx[idx] - 1 < obj.uvs.len() {
+                            obj.uvs[vt_idx[idx] - 1]
                         } else {
                             Vec2::ZERO
                         },
-                        normal: if vn_idx[j] > 0 && vn_idx[j] - 1 < obj.normals.len() {
-                            obj.normals[vn_idx[j] - 1]
+                        normal: if vn_idx[idx] > 0 && vn_idx[idx] - 1 < obj.normals.len() {
+                            obj.normals[vn_idx[idx] - 1]
                         } else {
                             Vec4::ZERO
                         },
                         color: [255, 255, 255, 255],
                     };
-
-                    println!("v_idx={} len={}", v_idx[j], obj.position.len());
                     vertices.push(vertex);
                     indices.push(vertices.len() as u16 - 1);
                 }
             }
+        }
 
         let mesh = Mesh {
             vertices,
