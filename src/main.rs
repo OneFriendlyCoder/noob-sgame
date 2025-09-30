@@ -32,57 +32,8 @@ async fn main() {
     let enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
 
     loop {
-        clear_background(BLUE);
+        clear_background(BLACK);
         set_camera(&camera);
-
-        // starting 3D drawing
-        // draw_cube(
-        //     vec3(0.0, -1.0, 0.0),
-        //     vec3(screen_w * road_half * 2.0, 0.1, screen_d),
-        //     None,
-        //     DARKGRAY,
-        // );
-
-        // draw_cube(
-        //     vec3(-screen_w * (road_half + lane_half / 2.0), -1.0, 0.0),
-        //     vec3(screen_w * lane_half, 0.1, screen_d),
-        //     None,
-        //     BLACK,
-        // );
-        // draw_cube(
-        //     vec3(screen_w * (road_half + lane_half / 2.0), -1.0, 0.0),
-        //     vec3(screen_w * lane_half, 0.1, screen_d),
-        //     None,
-        //     BLACK,
-        // );
-
-        // draw_cube(
-        //     vec3(-screen_w * (road_half + lane_half + grass_half / 2.0), -1.0, 0.0),
-        //     vec3(screen_w * grass_half, 0.1, screen_d),
-        //     None,
-        //     GREEN,
-        // );
-        // draw_cube(
-        //     vec3(screen_w * (road_half + lane_half + grass_half / 2.0), -1.0, 0.0),
-        //     vec3(screen_w * grass_half, 0.1, screen_d),
-        //     None,
-        //     GREEN,
-        // );
-
-        // draw_cube(
-        //     vec3(-screen_w * (road_half + lane_half + grass_half + red_half / 2.0), -1.0, 0.0),
-        //     vec3(screen_w * red_half, 0.1, screen_d),
-        //     None,
-        //     RED,
-        // );
-        // draw_cube(
-        //     vec3(screen_w * (road_half + lane_half + grass_half + red_half / 2.0), -1.0, 0.0),
-        //     vec3(screen_w * red_half, 0.1, screen_d),
-        //     None,
-        //     RED,
-        // );
-
-
         draw_cube(
             vec3(0.0, -1.0, 0.0),
             vec3(
@@ -100,22 +51,25 @@ async fn main() {
         let offset = mouse_pos - screen_center;
 
         let yaw = -(offset.x) * MOUSE_SENSITIVITY;
+        let mut pitch = -(offset.y) * MOUSE_SENSITIVITY;
+        let pitch_limit = std::f32::consts::FRAC_PI_2 - 0.1;
+        pitch = pitch.clamp(-pitch_limit, pitch_limit);
+
+        let look = vec3(yaw.cos()*pitch.cos(), pitch.sin(), yaw.sin()*pitch.cos());
         let forward = vec3(yaw.cos(), 0.0, yaw.sin());
+        let strafe_dir = vec3(-forward.z, 0.0, forward.x);
         if let Some(m) = get_movement() {
             match m {
                 Movement::W => camera.position += forward,
                 Movement::S => camera.position -= forward,
+                Movement::A => camera.position -= strafe_dir,
+                Movement::D => camera.position += strafe_dir,
             }
         }
-        camera.target = camera.position + forward;
+        camera.target = camera.position + look;
 
 
-        //drawing enemies
-        // let enemies = Enemies::init_enemies(3, x_min, x_max, z_min, z_max).await;
         enemies.draw_enemies();
-
-
-        // starting 2D drawing
         set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels
         
         //crosshair 
@@ -132,7 +86,6 @@ async fn main() {
                 ..Default::default()
             },
         );
-
 
         // // GAME NAME
         // let text = "RUSTY KRUNKER";

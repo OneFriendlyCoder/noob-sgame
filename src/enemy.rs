@@ -25,7 +25,7 @@ impl Enemy{
             self.position,
             self.size,
             None,
-            RED,
+            WHITE,
         )
     }
 }
