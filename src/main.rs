@@ -50,11 +50,11 @@ async fn main() {
         let mouse_pos = vec2(mouse_pos_tuple.0, mouse_pos_tuple.1);
         let offset = mouse_pos - screen_center;
 
+        // yaw, pitch and strafing done
         let yaw = -(offset.x) * MOUSE_SENSITIVITY;
         let mut pitch = -(offset.y) * MOUSE_SENSITIVITY;
         let pitch_limit = std::f32::consts::FRAC_PI_2 - 0.1;
         pitch = pitch.clamp(-pitch_limit, pitch_limit);
-
         let look = vec3(yaw.cos()*pitch.cos(), pitch.sin(), yaw.sin()*pitch.cos());
         let forward = vec3(yaw.cos(), 0.0, yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
