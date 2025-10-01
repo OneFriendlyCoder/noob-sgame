@@ -28,8 +28,8 @@ async fn main() {
     let mut player: Player = Player::new(vec3(0.0, screen_h * 0.001, 0.0),vec3(0.0, 0.0, 0.0) ,"Player1".to_string(), "Shotgun".to_string());
     
     let mut camera = Camera3D {
-        position: vec3(0.0, screen_h * 0.001, 0.0),
-        target: vec3(0.0, 0.0, 0.0),
+        position: player.position,
+        target: player.target,
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
@@ -65,9 +65,9 @@ async fn main() {
         let forward = vec3(yaw.cos(), 0.0, yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
         // let previous_player_position = player.position;
-        player.update_player_position(forward,strafe_dir,look,&enemies);
-        camera.position = player.position;
-        camera.target = player.target;
+        player.update_player_position(forward,strafe_dir,look,&enemies,&mut camera);
+        // camera.position = player.position;
+        // camera.target = player.target;
         
         // if let Some(m) = get_movement() {
         //     match m {

@@ -29,7 +29,7 @@ impl Player{
         }
     }
 
-    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies) {
+    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, camera: &mut Camera3D) {
         let previous_position = self.position;
         if let Some(m) = get_movement() {
             match m {
@@ -44,5 +44,8 @@ impl Player{
             self.position = previous_position;
         }
         self.target = self.position + look;
+
+        camera.position = self.position;
+        camera.target = self.target;
     }
 }
