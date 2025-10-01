@@ -3,7 +3,6 @@ use macroquad::models::*;
 use std::env;
 use std::fs;
 
-
 pub enum Movement {
     W,
     A,
@@ -26,13 +25,3 @@ pub fn get_movement() -> Option<Movement> {
 }
 
 
-
-
-// obj parsing to create mesh
-// function will take the .obj file as an parameter
-// and return a vector of meshes that are parsed from the obj file, each mesh each object
-
-// pub fn create_mesh(filepath: &str) -> Vec<Mesh>{
-//     let contents = fs::read_to_string(filepath).expect("Error reading file");
-    
-// }

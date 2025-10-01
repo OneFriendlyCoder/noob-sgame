@@ -3,8 +3,8 @@ use macroquad::prelude::*;
 #[derive(Debug)]
 pub struct Enemy{
     // texture: Texture2D,
-    position: Vec3,
-    size: Vec3,
+    pub position: Vec3,             //center
+    pub size: Vec3,
     health: i32,
 }
 
@@ -32,8 +32,8 @@ impl Enemy{
 
 #[derive(Debug)]
 pub struct Enemies {
-    enemies: Vec<Enemy>,
-    size: i32,
+    pub enemies: Vec<Enemy>,
+    pub size: i32,
 }
 
 impl Enemies{

@@ -1,9 +1,11 @@
 mod utilis;
 mod enemy;
+mod collision;
 
 use macroquad::prelude::*;
 use utilis::{Movement, get_movement};
 use enemy::*;
+use collision::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
@@ -29,7 +31,7 @@ async fn main() {
         ..Default::default()
     };
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
-    let enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
+    let enemies = Enemies::init_enemies(1, x_min, x_max, z_min, z_max).await;
 
     loop {
         clear_background(BLACK);
@@ -87,17 +89,9 @@ async fn main() {
             },
         );
 
-        // // GAME NAME
-        // let text = "RUSTY KRUNKER";
-        // let font_size = 100.0;
-        // let color = RED;
-        // let text_dimensions = measure_text(text, None, font_size as u16, 1.0);
-        // let text_width = text_dimensions.width;
 
-        // let x = (screen_width() - text_width) / 2.0;
-        // let y = font_size + 10.0;
-
-        // draw_text(text, x, y, font_size, color);
+        // collision detection
+        detect_collision(&enemies, &camera);
 
         next_frame().await;
     }
