@@ -60,6 +60,7 @@ async fn main() {
         let look = vec3(yaw.cos()*pitch.cos(), pitch.sin(), yaw.sin()*pitch.cos());
         let forward = vec3(yaw.cos(), 0.0, yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
+        let previous_camera_position = camera.position;
         if let Some(m) = get_movement() {
             match m {
                 Movement::W => camera.position += forward,
@@ -69,6 +70,12 @@ async fn main() {
             }
         }
         camera.target = camera.position + look;
+
+        // collision detection
+        if detect_collision(&enemies, &camera){
+            camera.position = previous_camera_position;
+            camera.target = camera.position + look;
+        }
 
 
         enemies.draw_enemies();
@@ -88,10 +95,7 @@ async fn main() {
                 ..Default::default()
             },
         );
-
-
-        // collision detection
-        detect_collision(&enemies, &camera);
+        
 
         next_frame().await;
     }
