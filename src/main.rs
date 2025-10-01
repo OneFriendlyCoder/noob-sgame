@@ -1,11 +1,13 @@
 mod utilis;
 mod enemy;
 mod collision;
+mod player;
 
 use macroquad::prelude::*;
 use utilis::{Movement, get_movement};
 use enemy::*;
 use collision::*;
+use player::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
@@ -23,13 +25,15 @@ async fn main() {
     let z_max =  screen_d / 2.0;
 
     const MOUSE_SENSITIVITY: f32 = 0.005;
-
+    let mut player: Player = Player::new(vec3(0.0, screen_h * 0.001, 0.0),vec3(0.0, 0.0, 0.0) ,"Player1".to_string(), "Shotgun".to_string());
+    
     let mut camera = Camera3D {
         position: vec3(0.0, screen_h * 0.001, 0.0),
         target: vec3(0.0, 0.0, 0.0),
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
+    
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
     let enemies = Enemies::init_enemies(1, x_min, x_max, z_min, z_max).await;
 
@@ -60,22 +64,27 @@ async fn main() {
         let look = vec3(yaw.cos()*pitch.cos(), pitch.sin(), yaw.sin()*pitch.cos());
         let forward = vec3(yaw.cos(), 0.0, yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
-        let previous_camera_position = camera.position;
-        if let Some(m) = get_movement() {
-            match m {
-                Movement::W => camera.position += forward,
-                Movement::S => camera.position -= forward,
-                Movement::A => camera.position -= strafe_dir,
-                Movement::D => camera.position += strafe_dir,
-            }
-        }
-        camera.target = camera.position + look;
+        // let previous_player_position = player.position;
+        player.update_player_position(forward,strafe_dir,look,&enemies);
+        camera.position = player.position;
+        camera.target = player.target;
+        
+        // if let Some(m) = get_movement() {
+        //     match m {
+        //         Movement::W => camera.position += forward,
+        //         Movement::S => camera.position -= forward,
+        //         Movement::A => camera.position -= strafe_dir,
+        //         Movement::D => camera.position += strafe_dir,
+        //     }
+        // }
+
+        // player.target = player.position + look;
 
         // collision detection
-        if detect_collision(&enemies, &camera){
-            camera.position = previous_camera_position;
-            camera.target = camera.position + look;
-        }
+        // if detect_collision(&enemies, &player){
+        //     player.position = previous_player_position;
+        //     player.target = player.position + look;
+        // }
 
 
         enemies.draw_enemies();

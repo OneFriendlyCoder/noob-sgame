@@ -1,5 +1,6 @@
 use crate::enemy::*;
 use macroquad::prelude::*;
+use crate::player::*;
 
 pub fn projection_xyz(position: Vec3, size: Vec3) -> Vec<Vec2> {
     let hx = (size.x / 2.0) + 2.0;          // setting the boundary
@@ -48,7 +49,7 @@ fn range(p: &Vec<Vec2>, component: usize) -> (i32, i32) {
 
 
 // camera => player, doing for 1 enemy rn
-pub fn detect_collision(E: &Enemies, c: &Camera3D) -> bool {
+pub fn detect_collision(E: &Enemies, c: &Player) -> bool {
     let e = &E.enemies[0];
     let e0_projections: Vec<Vec2> = projection_xyz(e.position, e.size);
     let camera_projections: Vec<Vec2> = projection_xyz(c.position, vec3(0.0, 0.0, 0.0));
@@ -64,3 +65,20 @@ pub fn detect_collision(E: &Enemies, c: &Camera3D) -> bool {
         || enemy_proj_z_min > camera_proj_z_max)
 
 }
+
+
+
+
+// Use velocity + swept AABB
+// Compute the movement vector (velocity) of the player.
+// Cast a ray or swept AABB along this vector to see exactly where the collision would occur.
+// Move the player up to the collision point instead of fully reverting.
+// Advantages:
+// Prevents tunneling through obstacles.
+// Smooth, accurate collision response.
+
+
+// we will create a sweep boundary for all the players
+// when the sweep boundary intersects with any of the obstacles or the sweep boundary of other players
+// then only calculate the projection vectors for velocity
+// then if the collision occurs then handle the collision
