@@ -52,7 +52,7 @@ async fn main() {
                 screen_d
             ),
             None,
-            DARKGRAY,
+            RED,
         );
 
         let screen_center = vec2(screen_w / 2.0, screen_h / 2.0); // screen_center : is the mid point of the gaming window

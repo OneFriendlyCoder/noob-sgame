@@ -34,7 +34,8 @@ impl Player{
     }
     pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, grid: &Grid, camera: &mut Camera3D) {
         let previous_position = self.position;
-        if let Some(m) = get_movement() {
+        let movements = get_movement();
+        for m in movements {
             match m {
                 Movement::W => self.position += forward * self.speed,
                 Movement::S => self.position -= forward * self.speed,
@@ -42,6 +43,7 @@ impl Player{
                 Movement::D => self.position += strafe_dir * self.speed,
             }
         }
+
         if detect_collision(enemies, grid, self) {
             println!("Collision detected");
             self.position = previous_position;

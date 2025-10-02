@@ -10,18 +10,21 @@ pub enum Movement {
     D,
 }
 
-pub fn get_movement() -> Option<Movement> {
+pub fn get_movement() -> Vec<Movement> {
+    let mut movements: Vec<Movement> = Vec::new();
     if is_key_down(KeyCode::W) {
-        Some(Movement::W)
-    } else if is_key_down(KeyCode::A) {
-        Some(Movement::A)
-    } else if is_key_down(KeyCode::S) {
-        Some(Movement::S)
-    } else if is_key_down(KeyCode::D) {
-        Some(Movement::D)
-    } else {
-        None
+        movements.push(Movement::W);
     }
+    if is_key_down(KeyCode::A) {
+        movements.push(Movement::A);
+    }
+    if is_key_down(KeyCode::S) {
+        movements.push(Movement::S);
+    }
+    if is_key_down(KeyCode::D) {
+        movements.push(Movement::D);
+    }
+    movements
 }
 
 
