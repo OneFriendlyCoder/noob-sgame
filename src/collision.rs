@@ -5,9 +5,9 @@ use crate::player::*;
 
 
 pub fn projection_xyz(position: Vec3, size: Vec3) -> Vec<Vec2> {
-    let hx = (size.x / 2.0) + 1.0;          // setting the boundary
-    let hy = (size.y / 2.0) + 1.0;
-    let hz = (size.z / 2.0) + 1.0;
+    let hx = (size.x / 2.0) + 0.5;          // setting the boundary
+    let hy = (size.y / 2.0) + 0.5;
+    let hz = (size.z / 2.0) + 0.5;
 
     let corners = [
         position + vec3(-hx, -hy, -hz),

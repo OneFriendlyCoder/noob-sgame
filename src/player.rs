@@ -13,10 +13,12 @@ pub struct Player {
     pub bullets: u32,
     pub targets_shot : u32,
     pub speed: f32,
+    pub yaw: f32,
+    pub pitch: f32,
 }
 
 impl Player{
-    pub fn new(position: Vec3, target: Vec3 ,name: String, weapon: String) -> Self{
+    pub fn new(position: Vec3, target: Vec3 ,name: String, weapon: String, yaw:f32, pitch:f32) -> Self{
         Self {
             health: 100,
             name,
@@ -25,7 +27,9 @@ impl Player{
             target, 
             bullets: 0,
             targets_shot: 0,
-            speed: 2.0,
+            speed: 1.0,
+            yaw, 
+            pitch,
         }
     }
     pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, grid: &Grid, camera: &mut Camera3D) {
