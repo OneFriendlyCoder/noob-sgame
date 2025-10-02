@@ -3,6 +3,7 @@ mod enemy;
 mod collision;
 mod player;
 mod grid;
+mod infinity;
 
 use macroquad::prelude::*;
 use utilis::*;
@@ -10,6 +11,7 @@ use enemy::*;
 use collision::*;
 use player::*;
 use grid::*;
+use infinity::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
@@ -23,12 +25,25 @@ async fn main() {
     let red_half = 0.32;
     let x_min = -screen_w * (road_half + lane_half + grass_half + red_half);
     let x_max =  screen_w * (road_half + lane_half + grass_half + red_half);
+    let y_min = -screen_h / 2.0;
+    let y_max =  screen_h / 2.0;
     let z_min = -screen_d / 2.0;
     let z_max =  screen_d / 2.0;
 
+
+    // star draw
+    // let mut star_walls = vec![
+    //     StarWall::new(1000, 0, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    //     StarWall::new(1000, 1, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    //     StarWall::new(1000, 2, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    //     StarWall::new(1000, 3, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    //     StarWall::new(1000, 4, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    //     StarWall::new(1000, 5, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    // ];
+
+
     const MOUSE_SENSITIVITY: f32 = 0.005;
     let mut player: Player = Player::new(vec3(0.0, screen_h * 0.001, 0.0),vec3(0.0, 0.0, 0.0) ,"Player1".to_string(), "Shotgun".to_string(), 0.0, 0.0);
-    
     let mut camera = Camera3D {
         position: player.position,
         target: player.target,
@@ -52,8 +67,12 @@ async fn main() {
                 screen_d
             ),
             None,
-            RED,
+            DARKGRAY,
         );
+
+        // for wall in &star_walls {
+        //     wall.draw();
+        // }
 
         let screen_center = vec2(screen_w / 2.0, screen_h / 2.0); // screen_center : is the mid point of the gaming window
         let mouse_pos_tuple = mouse_position();
@@ -70,11 +89,9 @@ async fn main() {
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
         player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera);
         
-        // set_mouse_position(screen_center.x, screen_center.y);
-
         enemies.draw_enemies();
         set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels
-        
+
         //crosshair 
         let size:Vec2 = vec2(texture.width()/20.0, texture.height()/20.0);
         let x = (screen_width() - size.x) / 2.0;
@@ -89,8 +106,6 @@ async fn main() {
                 ..Default::default()
             },
         );
-        
-
         next_frame().await;
     }
 }
