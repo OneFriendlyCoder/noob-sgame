@@ -2,6 +2,7 @@ use macroquad::prelude::*;
 use crate::utilis::*;
 use crate::enemy::*;
 use crate::collision::*;
+use crate::grid::*;
 
 pub struct Player {
     pub health: u32,
@@ -13,7 +14,6 @@ pub struct Player {
     pub targets_shot : u32,
     pub speed: f32,
 }
-
 
 impl Player{
     pub fn new(position: Vec3, target: Vec3 ,name: String, weapon: String) -> Self{
@@ -28,8 +28,7 @@ impl Player{
             speed: 2.0,
         }
     }
-
-    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, camera: &mut Camera3D) {
+    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, grid: &Grid, camera: &mut Camera3D) {
         let previous_position = self.position;
         if let Some(m) = get_movement() {
             match m {
@@ -39,13 +38,13 @@ impl Player{
                 Movement::D => self.position += strafe_dir * self.speed,
             }
         }
-        if detect_collision(enemies, self){
+        if detect_collision(enemies, grid, self) {
             println!("Collision detected");
             self.position = previous_position;
         }
         self.target = self.position + look;
-
         camera.position = self.position;
         camera.target = self.target;
     }
+
 }

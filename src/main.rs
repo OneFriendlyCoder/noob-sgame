@@ -2,12 +2,14 @@ mod utilis;
 mod enemy;
 mod collision;
 mod player;
+mod grid;
 
 use macroquad::prelude::*;
 use utilis::{Movement, get_movement};
 use enemy::*;
 use collision::*;
 use player::*;
+use grid::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
@@ -35,8 +37,9 @@ async fn main() {
     };
     
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
-    let enemies = Enemies::init_enemies(1, x_min, x_max, z_min, z_max).await;
-
+    let enemies = Enemies::init_enemies(3, x_min, x_max, z_min, z_max).await;
+    let grid = init_grid(&enemies, x_min, x_max, z_min, z_max, 10, 10);
+    
     loop {
         clear_background(BLACK);
         set_camera(&camera);
@@ -65,7 +68,7 @@ async fn main() {
         let forward = vec3(yaw.cos(), 0.0, yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
         // let previous_player_position = player.position;
-        player.update_player_position(forward,strafe_dir,look,&enemies,&mut camera);
+        player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera);
         // camera.position = player.position;
         // camera.target = player.target;
         
