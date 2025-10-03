@@ -4,6 +4,7 @@ mod collision;
 mod player;
 mod grid;
 mod infinity;
+mod camera;
 
 use macroquad::prelude::*;
 use utilis::*;
@@ -11,14 +12,13 @@ use enemy::*;
 use collision::*;
 use player::*;
 use grid::*;
+use camera::*;
 use infinity::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
     set_pc_assets_folder("./assets/");
-    let screen_h: f32 = screen_height();
-    let screen_w: f32 = screen_width();
-    let screen_d: f32 = screen_h.max(screen_w);
+    let (screen_h, screen_w, screen_d) = board_size();
     let road_half = 0.01;
     let lane_half = 0.005;
     let grass_half = 0.09;
@@ -58,6 +58,7 @@ async fn main() {
     loop {
         clear_background(BLACK);
         set_camera(&camera);
+        let mut camera_view = CameraView::FirstPerson; 
         show_mouse(false);
         draw_cube(
             vec3(0.0, -1.0, 0.0),
@@ -69,6 +70,9 @@ async fn main() {
             None,
             DARKGRAY,
         );
+
+        //drawing player
+        player.draw_player(&camera_view);
 
         // for wall in &star_walls {
         //     wall.draw();
@@ -87,7 +91,7 @@ async fn main() {
         let look = vec3(player.yaw.cos()*player.pitch.cos(), player.pitch.sin(), player.yaw.sin()*player.pitch.cos());
         let forward = vec3(player.yaw.cos(), 0.0, player.yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
-        player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera);
+        player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera, camera_view);
         
         enemies.draw_enemies();
         set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels

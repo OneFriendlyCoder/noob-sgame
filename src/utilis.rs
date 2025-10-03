@@ -28,3 +28,10 @@ pub fn get_movement() -> Vec<Movement> {
 }
 
 
+pub fn board_size() -> (f32, f32, f32){
+    let screen_h: f32 = screen_height();
+    let screen_w: f32 = screen_width();
+    let screen_d: f32 = screen_h.max(screen_w);
+    (screen_h, screen_w, screen_d)
+}
+

@@ -49,26 +49,6 @@ fn range(p: &Vec<Vec2>, component: usize) -> (i32, i32) {
     (amin, amax)
 }
 
-
-// camera => player, doing for 1 enemy rn
-// pub fn detect_collision(E: &Enemies, c: &Player) -> bool {
-//     let e = &E.enemies[0];
-//     let e0_projections: Vec<Vec2> = projection_xyz(e.position, e.size);
-//     let camera_projections: Vec<Vec2> = projection_xyz(c.position, vec3(0.0, 0.0, 0.0));
-
-//     let (enemy_proj_x_min, enemy_proj_x_max) = range(&e0_projections, 0);
-//     let (enemy_proj_z_min, enemy_proj_z_max) = range(&e0_projections, 1);
-//     let (camera_proj_x_min, camera_proj_x_max) = range(&camera_projections, 0);
-//     let (camera_proj_z_min, camera_proj_z_max) = range(&camera_projections, 1);
-
-//     !(enemy_proj_x_max < camera_proj_x_min
-//         || enemy_proj_x_min > camera_proj_x_max
-//         || enemy_proj_z_max < camera_proj_z_min
-//         || enemy_proj_z_min > camera_proj_z_max)
-
-//     }
-
-
 pub fn detect_collision(E: &Enemies, grid: &Grid, player: &Player) -> bool {
     
     let (px, pz) = grid.get_cell_coords(player.position);    
