@@ -55,6 +55,7 @@ async fn main() {
     let mut camera1 = Camera3D {
         position: player.position,
         target: player.position,
+        fovy: 90.0,
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
@@ -104,6 +105,8 @@ async fn main() {
         // yaw, pitch and strafing done
         player.yaw = -(offset.x) * MOUSE_SENSITIVITY;
         player.pitch = -(offset.y) * MOUSE_SENSITIVITY;
+
+        
         let pitch_limit = std::f32::consts::FRAC_PI_2 - 0.1;
         player.pitch = player.pitch.clamp(-pitch_limit, pitch_limit);
         let look = vec3(player.yaw.cos()*player.pitch.cos(), player.pitch.sin(), player.yaw.sin()*player.pitch.cos());

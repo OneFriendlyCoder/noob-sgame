@@ -20,6 +20,8 @@ pub struct Player {
     pub velocity_y: f32,
     pub is_jumping: bool,
     pub size: Vec3,
+    // pub camera1_yaw: f32,
+    // pub camera1_pitch: f32,
 }
 
 impl Player{
@@ -38,6 +40,8 @@ impl Player{
             velocity_y: 0.0,
             is_jumping: false,
             size: vec3(1.0,1.0,1.0),
+            // camera1_yaw: 0.0,
+            // camera1_pitch: 0.0,
         }
     }
 
@@ -98,11 +102,11 @@ impl Player{
                     camera_offset.y,
                     camera_offset.x * self.yaw.sin() + camera_offset.z * self.yaw.cos(),
                 );
-
                 camera1.position = self.position + rotated_offset;
                 camera1.target = self.position + look;
+                                    
+                }
             }
-        }
 
 
         // changing fov, scope effect
