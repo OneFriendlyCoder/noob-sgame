@@ -52,7 +52,7 @@ impl Player{
             }
         }
 
-    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, grid: &Grid, camera: &mut Camera3D, camera_view: CameraView) {
+    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, grid: &Grid, camera: &mut Camera3D, camera1: &mut Camera3D,camera_view: CameraView) {
         let previous_position = self.position;
         let movements = get_movement();
 
@@ -86,17 +86,24 @@ impl Player{
             self.position = previous_position;
         }
 
-        match camera_view{
+        match camera_view {
             CameraView::FirstPerson => {
                 camera.position = self.position;
                 camera.target = self.position + look;
             }
             CameraView::ThirdPerson => {
-                let camera_offset = vec3(0.0, 2.0, -5.0);
-                camera.position = self.position + camera_offset;
-                camera.target = self.position; 
+                let camera_offset = vec3(0.0, 10.0, -10.0);
+                let rotated_offset = vec3(
+                    camera_offset.x * self.yaw.cos() - camera_offset.z * self.yaw.sin(),
+                    camera_offset.y,
+                    camera_offset.x * self.yaw.sin() + camera_offset.z * self.yaw.cos(),
+                );
+
+                camera1.position = self.position + rotated_offset;
+                camera1.target = self.position + look;
             }
         }
+
 
         // changing fov, scope effect
         let target_fovy = if is_mouse_button_down(MouseButton::Right) {

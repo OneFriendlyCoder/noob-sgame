@@ -31,7 +31,7 @@ async fn main() {
     let z_max =  screen_d / 2.0;
 
 
-    // star draw
+    // star draw, do not remove this code
     // let mut star_walls = vec![
     //     StarWall::new(1000, 0, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
     //     StarWall::new(1000, 1, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
@@ -50,15 +50,33 @@ async fn main() {
         up: vec3(0.0, 1.0, 0.0),
         ..Default::default()
     };
+
+    // third person view camera
+    let mut camera1 = Camera3D {
+        position: player.position,
+        target: player.position,
+        up: vec3(0.0, 1.0, 0.0),
+        ..Default::default()
+    };
     
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
     let enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
     let grid = init_grid(&enemies, x_min, x_max, z_min, z_max, 10, 10);
-    
+    let mut camera_view = CameraView::FirstPerson; 
+
     loop {
         clear_background(BLACK);
-        set_camera(&camera);
-        let mut camera_view = CameraView::FirstPerson; 
+
+        // setting camera based on the person's view
+        if is_key_down(KeyCode::V){
+            camera_view = CameraView::ThirdPerson;
+            set_camera(&camera1);
+        } else {
+            camera_view = CameraView::FirstPerson;
+            set_camera(&camera);
+        }
+
+        // set_camera(&camera);
         show_mouse(false);
         draw_cube(
             vec3(0.0, -1.0, 0.0),
@@ -91,7 +109,7 @@ async fn main() {
         let look = vec3(player.yaw.cos()*player.pitch.cos(), player.pitch.sin(), player.yaw.sin()*player.pitch.cos());
         let forward = vec3(player.yaw.cos(), 0.0, player.yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
-        player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera, camera_view);
+        player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera,&mut camera1 ,camera_view);
         
         enemies.draw_enemies();
         set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels
