@@ -32,14 +32,14 @@ async fn main() {
 
 
     // star draw, do not remove this code
-    // let mut star_walls = vec![
-    //     StarWall::new(1000, 0, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
-    //     StarWall::new(1000, 1, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
-    //     StarWall::new(1000, 2, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
-    //     StarWall::new(1000, 3, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
-    //     StarWall::new(1000, 4, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
-    //     StarWall::new(1000, 5, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
-    // ];
+    let mut star_walls = vec![
+        StarWall::new(1000, 0, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+        StarWall::new(1000, 1, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+        StarWall::new(1000, 2, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+        StarWall::new(1000, 3, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+        StarWall::new(1000, 4, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+        StarWall::new(1000, 5, x_min, x_max, y_min, y_max, z_min, z_max, 5.0),
+    ];
 
 
     const MOUSE_SENSITIVITY: f32 = 0.005;
@@ -87,15 +87,15 @@ async fn main() {
                 screen_d
             ),
             None,
-            DARKGRAY,
+            BLACK,
         );
 
         //drawing player
         player.draw_player(&camera_view);
 
-        // for wall in &star_walls {
-        //     wall.draw();
-        // }
+        for wall in &star_walls {
+            wall.draw();
+        }
 
         let screen_center = vec2(screen_w / 2.0, screen_h / 2.0); // screen_center : is the mid point of the gaming window
         let mouse_pos_tuple = mouse_position();

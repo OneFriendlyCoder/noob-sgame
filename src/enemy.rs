@@ -20,14 +20,25 @@ impl Enemy{
         }
     }
 
-    fn draw(&self){
+    fn draw(&self) {
+        let colors = [
+            GREEN,
+            YELLOW,
+            SKYBLUE,
+            GRAY,
+            ORANGE,
+            PINK,
+            LIGHTGRAY,
+        ];
+        let color = colors[rand::gen_range(0, colors.len())];
         draw_cube(
             self.position,
             self.size,
             None,
-            WHITE,
-        )
+            color,
+        );
     }
+
 }
 
 #[derive(Debug)]
