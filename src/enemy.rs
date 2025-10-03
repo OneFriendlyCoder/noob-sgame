@@ -25,10 +25,8 @@ impl Enemy{
             GREEN,
             YELLOW,
             SKYBLUE,
-            GRAY,
             ORANGE,
             PINK,
-            LIGHTGRAY,
         ];
         let color = colors[rand::gen_range(0, colors.len())];
         draw_cube(
