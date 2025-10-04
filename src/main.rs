@@ -5,6 +5,7 @@ mod player;
 mod grid;
 mod infinity;
 mod camera;
+// mod ammos;
 
 use macroquad::prelude::*;
 use utilis::*;
@@ -14,6 +15,7 @@ use player::*;
 use grid::*;
 use camera::*;
 use infinity::*;
+// use ammos::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
@@ -87,7 +89,7 @@ async fn main() {
                 screen_d
             ),
             None,
-            BLACK,
+            DARKGRAY,
         );
 
         //drawing player
@@ -115,6 +117,7 @@ async fn main() {
         player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera,&mut camera1 ,camera_view);
         
         enemies.draw_enemies();
+        
         set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels
 
         //crosshair 

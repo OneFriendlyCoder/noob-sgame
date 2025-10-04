@@ -6,6 +6,12 @@ use crate::grid::*;
 use crate::camera::*;
 // use macroquad::prelude::MouseButton::Right;
 
+pub struct Shot{
+    pub start: Vec3,
+    pub end: Vec3,
+    pub lifetime: f32,
+}
+
 pub struct Player {
     pub health: u32,
     pub name: String,
@@ -20,6 +26,7 @@ pub struct Player {
     pub velocity_y: f32,
     pub is_jumping: bool,
     pub size: Vec3,
+    pub shots: Vec<Shot>,
     // pub camera1_yaw: f32,
     // pub camera1_pitch: f32,
 }
@@ -40,6 +47,7 @@ impl Player{
             velocity_y: 0.0,
             is_jumping: false,
             size: vec3(1.0,1.0,1.0),
+            shots: vec![],
             // camera1_yaw: 0.0,
             // camera1_pitch: 0.0,
         }
@@ -111,11 +119,32 @@ impl Player{
 
         // changing fov, scope effect
         let target_fovy = if is_mouse_button_down(MouseButton::Right) {
+            //shooting logic
+            let o = camera.position;
+            let d = (camera.target - camera.position).normalize();
+            let md = 100000.0;
+            let ep = o + d*md;
+            
+            if is_mouse_button_down(MouseButton::Left){
+                self.shots.push(Shot{
+                    start: o,
+                    end: ep,
+                    lifetime: 200.0,
+                });
+
+            }
+            
             45.0_f32.to_radians()
         } else {
             60.0_f32.to_radians()
         };
         camera.fovy += (target_fovy - camera.fovy) * 0.2;
+
+        for shot in &mut self.shots{
+            draw_line_3d(shot.start, shot.end, BLUE);
+            shot.lifetime -= get_frame_time();
+        }
+        self.shots.retain(|s| s.lifetime>0.0);      //deletes all other shots whose lifetime is less than 0
 
 
     }

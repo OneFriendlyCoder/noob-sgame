@@ -28,7 +28,7 @@ impl Enemy{
             ORANGE,
             PINK,
         ];
-        let color = colors[rand::gen_range(0, colors.len())];
+        let color = colors[0];//rand::gen_range(0, colors.len())];
         draw_cube(
             self.position,
             self.size,
