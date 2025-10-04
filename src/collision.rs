@@ -77,3 +77,76 @@ pub fn detect_collision(E: &Enemies, grid: &Grid, player: &Player) -> bool {
     }
     false
 }
+
+pub fn check_bullet_hit_grid(E: &mut Enemies, grid: &mut Grid, player: &mut Player) -> Option<usize> {
+    for shot in &mut player.shots {
+        if shot.hit { continue; }
+
+        let start = shot.start;
+        let end = shot.end;
+        let dir = end - start;
+        let length = dir.length();
+        if length == 0.0 { continue; }
+        let dir_normalized = dir / length;
+
+        let steps = length as i32;
+        let mut pos = start;
+
+        let mut closest_enemy_idx: Option<usize> = None;
+        let mut closest_dist = f32::MAX;
+
+        // Find the closest enemy along the ray
+        for _ in 0..=steps {
+            if let Some(cell) = grid.get_cell_from_world(pos.x, pos.z) {
+                for &enemy_idx in cell {
+                    if enemy_idx >= E.enemies.len() { continue; }
+                    let enemy = &E.enemies[enemy_idx];
+                    let min_y = enemy.position.y - enemy.size.y / 2.0;
+                    let max_y = enemy.position.y + enemy.size.y / 2.0;
+
+                    if pos.y >= min_y && pos.y <= max_y {
+                        let dist = (pos - start).length();
+                        if dist < closest_dist {
+                            closest_dist = dist;
+                            closest_enemy_idx = Some(enemy_idx);
+                        }
+                    }
+                }
+            }
+            pos += dir_normalized;
+        }
+
+        // If we hit an enemy, remove only that one
+        if let Some(enemy_idx) = closest_enemy_idx {
+            shot.hit = true;
+
+            // Remove enemy from all grid cells it occupies
+            let enemy = &E.enemies[enemy_idx];
+            let (x0, z0) = grid.get_cell_coords(enemy.position - enemy.size / 2.0);
+            let (x1, z1) = grid.get_cell_coords(enemy.position + enemy.size / 2.0);
+            for x in x0..=x1 {
+                for z in z0..=z1 {
+                    grid.cells[x][z].retain(|&idx| idx != enemy_idx);
+                }
+            }
+
+            // Remove enemy from enemies list
+            E.enemies.remove(enemy_idx);
+
+            // Update all remaining indices in grid
+            for x in 0..grid.xcells {
+                for z in 0..grid.zcells {
+                    for idx in &mut grid.cells[x][z] {
+                        if *idx > enemy_idx {
+                            *idx -= 1;
+                        }
+                    }
+                }
+            }
+
+            return Some(enemy_idx); // stop after hitting first enemy
+        }
+    }
+
+    None
+}

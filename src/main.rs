@@ -63,8 +63,8 @@ async fn main() {
     };
     
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
-    let enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
-    let grid = init_grid(&enemies, x_min, x_max, z_min, z_max, 10, 10);
+    let mut enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
+    let mut grid = init_grid(&enemies, x_min, x_max, z_min, z_max, 10, 10);
     let mut camera_view = CameraView::FirstPerson; 
 
     loop {
@@ -114,7 +114,7 @@ async fn main() {
         let look = vec3(player.yaw.cos()*player.pitch.cos(), player.pitch.sin(), player.yaw.sin()*player.pitch.cos());
         let forward = vec3(player.yaw.cos(), 0.0, player.yaw.sin());
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
-        player.update_player_position(forward, strafe_dir, look, &enemies, &grid, &mut camera,&mut camera1 ,camera_view);
+        player.update_player_position(forward, strafe_dir, look, &mut enemies, &mut grid, &mut camera,&mut camera1 ,camera_view);
         
         enemies.draw_enemies();
         

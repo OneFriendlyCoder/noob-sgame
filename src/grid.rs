@@ -40,6 +40,15 @@ impl Grid {
             }
         }
     }
+
+    pub fn get_cell_from_world(&self, x: f32, z: f32) -> Option<&Vec<usize>> {
+        let mut xidx = ((x - self.xmin) / self.cell_width) as isize;
+        let mut zidx = ((z - self.zmin) / self.cell_height) as isize;
+        if xidx < 0 || zidx < 0 || xidx >= self.xcells as isize || zidx >= self.zcells as isize {
+            return None;
+        }
+        Some(&self.cells[xidx as usize][zidx as usize])
+    }
 }
 
 

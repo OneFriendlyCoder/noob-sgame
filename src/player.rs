@@ -10,6 +10,7 @@ pub struct Shot{
     pub start: Vec3,
     pub end: Vec3,
     pub lifetime: f32,
+    pub hit: bool,
 }
 
 pub struct Player {
@@ -64,7 +65,7 @@ impl Player{
             }
         }
 
-    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &Enemies, grid: &Grid, camera: &mut Camera3D, camera1: &mut Camera3D,camera_view: CameraView) {
+    pub fn update_player_position(&mut self, forward: Vec3, strafe_dir: Vec3, look: Vec3, enemies: &mut Enemies, grid: &mut Grid, camera: &mut Camera3D, camera1: &mut Camera3D,camera_view: CameraView) {
         let previous_position = self.position;
         let movements = get_movement();
 
@@ -130,8 +131,12 @@ impl Player{
                     start: o,
                     end: ep,
                     lifetime: 200.0,
+                    hit: false,
                 });
 
+                if let Some(hit_idx) = check_bullet_hit_grid(enemies, grid, self){
+                    println!("Bullet hit the enemy{}", hit_idx);
+                }
             }
             
             45.0_f32.to_radians()
