@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 #[derive(Debug)]
 pub struct Enemy{
     // texture: Texture2D,
+    pub uid: u32,
     pub position: Vec3,             //center
     pub size: Vec3,
     health: i32,
@@ -10,10 +11,11 @@ pub struct Enemy{
 
 impl Enemy{             
     // async fn new(texture_path: &str, position: Vec3, size: Vec3) -> Self {            //constructor function
-    async fn new(position: Vec3, size: Vec3) -> Self {    
+    async fn new(uid:u32,position: Vec3, size: Vec3) -> Self {    
         // let texture = load_texture(texture_path).await.unwrap();
         Self {
-            // texture,
+            // texture,\
+            uid,
             position,
             size,
             health : 100,
@@ -51,11 +53,12 @@ impl Enemies{
         let mut enemies: Vec<Enemy> = Vec::new();
         let y_measure = 20.0;
         let ground_y = -1.0;
-        for _ in 0..size{
+        for i in 0..size{
             let x = rand::gen_range(xmin,xmax);
             let z = rand::gen_range(zmin,zmax);
             let enemy = Enemy::new(
                 // "enemy/type1.png",
+                i as u32,
                 vec3(x, ground_y + y_measure / 2.0, z),
                 vec3(5.0, y_measure, 5.0),
             ).await;
