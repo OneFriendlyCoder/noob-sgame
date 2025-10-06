@@ -1,3 +1,5 @@
+// these are the building blocks, we can fix them 
+
 use macroquad::prelude::*;
 
 #[derive(Debug)]

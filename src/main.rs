@@ -61,7 +61,7 @@ async fn main() {
     };
     
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
-    let mut enemies = Enemies::init_enemies(100, x_min, x_max, z_min, z_max).await;
+    let mut enemies = Enemies::init_enemies(1, x_min, x_max, z_min, z_max).await;
     let mut grid = init_grid(&enemies, x_min, x_max, z_min, z_max, 10, 10);
     let mut camera_view = CameraView::FirstPerson; 
 

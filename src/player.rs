@@ -18,7 +18,7 @@ pub struct Player {
     pub name: String,
     pub weapon: String,
     pub position: Vec3,
-    pub target: Vec3,           // the point at which the player is looking at
+    pub target: Vec3,
     pub bullets: u32,
     pub targets_shot : u32,
     pub speed: f32,
@@ -28,8 +28,6 @@ pub struct Player {
     pub is_jumping: bool,
     pub size: Vec3,
     pub shots: Vec<Shot>,
-    // pub camera1_yaw: f32,
-    // pub camera1_pitch: f32,
 }
 
 impl Player{
@@ -49,8 +47,6 @@ impl Player{
             is_jumping: false,
             size: vec3(1.0,1.0,1.0),
             shots: vec![],
-            // camera1_yaw: 0.0,
-            // camera1_pitch: 0.0,
         }
     }
 
