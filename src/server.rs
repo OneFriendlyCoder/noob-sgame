@@ -26,66 +26,91 @@ use tokio::time::Instant;
 #[derive(Debug)]
 struct GlobalState {
     players: Vec<player>, 
-    // Stores all active players in the game.
-    // Each player struct would typically include:
-    // position, speed, score, targets hit, ammo, etc.
-    // This acts as the single source of truth for player data.
-
     enemies: Vec<Vec<player>>,      
-    // Enemies per player. Each player has their own enemy list.
-    // This allows each player to have personalized challenges.
-    // Enables asynchronous gameplay and targeted enemy logic.
+
 }
 
 struct Client {     
     id: Uuid,               
-    // Unique identifier for each connected client.
-    // Helps in managing client connections and tracking their state.
-
-    ws: WebSocket,          
-    // Persistent websocket connection.
-    // Allows continuous communication with the client
-    // without reconnecting every frame.
-
+    ws_r: ReadHalf<WebSocketStream<TcpStream>>,
+    ws_w: WriteHalf<WebSocketStream<TcpStream>>,         
     last_seen: Instant,     
-    // Timestamp of last activity from the client.
-    // Useful for detecting timeouts or disconnected clients.
 }
 
 struct ServerState{
     global_state: Arc<RwLock<GlobalState>>,
-    // Shared, thread-safe global game state.
-    // Arc<RwLock<>> allows multiple threads to read the game state
-    // concurrently, while writes are exclusive.
-
     clients: HashMap<Uuid, Client>,
-    // Stores all connected clients.
-    // Keyed by UUID for easy lookup, adding, or removing clients.
 }
 
-// Handles incoming client connections.
-// Should accept websocket connections, verify credentials (game code/password),
-// and register clients in ServerState.
-pub fn handleClientConnections() {
-    // Steps to implement:
-    // 1. Accept a TCP/WebSocket connection from a client.
-    // 2. Authenticate the client using game code/password.
-    // 3. Add the client to ServerState.clients.
-    // 4. Spawn a dedicated thread or async task for processing this client's inputs.
+async fn handleClientConnections(s:TcpStream, state: Arc<ServerState>) {
+    let ws = match accept_async(s).await{
+        Ok(ws) => ws,
+        Err(e) => {
+            println!("Websocket handshake failed : {}"e);
+            return;
+        }
+    };
+
+    let client_id = Uuid::new_v4();
+    // println!("New client : {}", client_id);
+
+    let(mut w, mut r) = ws.split();
+    let c = Client{
+        id: client_id,
+        ws_r: r,
+        ws_w: w,
+        last_seen: Instant::now(),
+    };
+    state.client.write().unwrap().insert(client_id, client);
+    let mut gs = state.global_state.write().unwrap();
+    gs.players.push(Player::new(client_id));
 }
 
-// Main server loop.
-// Responsible for initializing game state, waiting for all players to connect,
-// and orchestrating game state updates and broadcasts.
 pub fn run_Server() {
-    // Steps to implement:
-    // 1. Wait for all expected clients to connect.
-    // 2. Initialize players and their enemies in GlobalState.
-    // 3. Initialize the ServerState with GlobalState and clients.
-    // 4. Start the main game loop:
-    //      - Process inputs from clients.
-    //      - Update GlobalState (player positions, enemy behavior, collisions, etc.).
-    //      - Broadcast game state updates (or diffs) to all connected clients.
+    let addr = "127.0.0.1:9001";
+    let l = TcpListener::bind(addr).await.unwrap();
+    prinln!("Server running at : {}", addr);
+
+    let global_state = Arc::new(RwLock::new(GlobalState{
+        players: Vec::new(),
+        enemies: Vec::new(),
+    }));
+
+    let server_state = Arc::new(RwLock::new(ServerState{
+        global_state: Arc::clone(&global_state),            // Arc::clone increase the ref count of the Arc<T>
+        clients: Arc::new(RwLock::new(HashMap::new())),
+    }));
+
+    let sc = Arc::clone(&server_state);
+    tokio::spawn(async move{
+        loop{
+            if let Ok((stream, _)) = l.accept.await{
+                let state_for_client = Arc::clone(&sc);
+                tokio::spawn(async move{
+                    handleClientConnections(stream, state_for_client).await;
+                });
+            }
+        }
+    });
+
+
+    let mut ticker = time::interval(Duration::from_millis(1000/60));
+    loop{
+        ticker.tick().await;
+        let snapshot = {
+            let gs = global_state.read().unwrap();
+            serde_json::to_string(&*gs).unwrap_or_else(|_| "{}".to_string())
+        };
+
+        let clients = server_state.clients.read().unwrap();
+        for (id, client) in clients.iter(){
+            // Only Send diffs of the data
+            if let Err(e) = client.ws_wr.send(Message::Text(snapshot.clone())).await{
+                eprintln!("Failed to send to {} : {}", id, e);
+            }
+        }
+    }
+
 }
 
 // Main entry point.
@@ -97,8 +122,8 @@ async fn main() {
     let choice = choice.trim().to_lowercase();
 
     match choice.as_str() {
-        "s" => run_Server.await(),  // Start server mode
-        "c" => run_Client.await(),  // Start client mode
+        "s" => run_Server.await(),
+        "c" => run_Client.await(),
         _ => println!("Invalid Choice, Please enter 's' or 'c'"),
     }
 

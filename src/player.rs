@@ -126,7 +126,7 @@ impl Player{
                 self.shots.push(Shot{
                     start: o,
                     end: ep,
-                    lifetime: 200.0,
+                    lifetime: 0.002,
                     hit: false,
                 });
 

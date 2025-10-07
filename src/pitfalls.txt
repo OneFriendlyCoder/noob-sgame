@@ -1,0 +1,2 @@
+when the enemy is hit, it is moved out from the grid and the rest of the remaining enemies index changes.
+this might cause issue when we are dealing with moving players.
