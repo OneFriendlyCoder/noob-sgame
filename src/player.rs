@@ -4,6 +4,8 @@ use crate::enemy::*;
 use crate::collision::*;
 use crate::grid::*;
 use crate::camera::*;
+use uuid::Uuid;
+// use serde::Serialize;
 // use macroquad::prelude::MouseButton::Right;
 
 pub struct Shot{
@@ -14,6 +16,7 @@ pub struct Shot{
 }
 
 pub struct Player {
+    pub id: Uuid,
     pub health: u32,
     pub name: String,
     pub weapon: String,
@@ -31,8 +34,9 @@ pub struct Player {
 }
 
 impl Player{
-    pub fn new(position: Vec3, target: Vec3 ,name: String, weapon: String, yaw:f32, pitch:f32) -> Self{
+    pub fn new(id: Uuid,position: Vec3, target: Vec3 ,name: String, weapon: String, yaw:f32, pitch:f32) -> Self{
         Self {
+            id,
             health: 100,
             name,
             weapon,

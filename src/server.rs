@@ -11,42 +11,47 @@
 
 // defining global state
 
-mod player;
-
+use macroquad::prelude::*;
 use crate::player::*;
 use std::io::{self, Write};
+use tokio::time::{self, Duration};
+// use serde_json;
+// use serde::Serialize;
+use bytes::Bytes;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::{accept_async, connect_async, tungstenite::protocol::Message};
-use futures::{SinkExt, StreamExt};
+use tokio_tungstenite::WebSocketStream;
+use futures::stream::*;
+use futures::SinkExt;
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use uuid::Uuid;
 use tokio::time::Instant;
 
-#[derive(Debug)]
+
 struct GlobalState {
-    players: Vec<player>, 
-    enemies: Vec<Vec<player>>,      
+    players: Vec<Player>, 
+    enemies: Vec<Vec<Player>>,      
 
 }
 
 struct Client {     
     id: Uuid,               
-    ws_r: ReadHalf<WebSocketStream<TcpStream>>,
-    ws_w: WriteHalf<WebSocketStream<TcpStream>>,         
+    ws_w: SplitSink<WebSocketStream<TcpStream>, Message>,
+    ws_r: SplitStream<WebSocketStream<TcpStream>>,        
     last_seen: Instant,     
 }
 
 struct ServerState{
     global_state: Arc<RwLock<GlobalState>>,
-    clients: HashMap<Uuid, Client>,
+    clients: RwLock<HashMap<Uuid, Client>>,
 }
 
 async fn handleClientConnections(s:TcpStream, state: Arc<ServerState>) {
     let ws = match accept_async(s).await{
         Ok(ws) => ws,
         Err(e) => {
-            println!("Websocket handshake failed : {}"e);
+            println!("Websocket handshake failed : {}", e);
             return;
         }
     };
@@ -61,30 +66,41 @@ async fn handleClientConnections(s:TcpStream, state: Arc<ServerState>) {
         ws_w: w,
         last_seen: Instant::now(),
     };
-    state.client.write().unwrap().insert(client_id, client);
+    let mut clients=  state.clients.write().unwrap();
+    clients.insert(client_id, c);
     let mut gs = state.global_state.write().unwrap();
-    gs.players.push(Player::new(client_id));
+    let new_player = Player::new(
+    client_id,
+    vec3(0.0, 0.0, 0.0), 
+    vec3(0.0, 0.0, 0.0), 
+    "Player1".to_string(), 
+    "Pistol".to_string(),  
+    0.0,                 
+    0.0                  
+    );
+    gs.players.push(new_player);
 }
 
-pub fn run_Server() {
+
+pub async fn run_Server() {
     let addr = "127.0.0.1:9001";
     let l = TcpListener::bind(addr).await.unwrap();
-    prinln!("Server running at : {}", addr);
+    println!("Server running at : {}", addr);
 
     let global_state = Arc::new(RwLock::new(GlobalState{
         players: Vec::new(),
         enemies: Vec::new(),
     }));
 
-    let server_state = Arc::new(RwLock::new(ServerState{
+    let server_state = Arc::new((ServerState{
         global_state: Arc::clone(&global_state),            // Arc::clone increase the ref count of the Arc<T>
-        clients: Arc::new(RwLock::new(HashMap::new())),
+        clients: RwLock::new(HashMap::new()),
     }));
 
     let sc = Arc::clone(&server_state);
     tokio::spawn(async move{
         loop{
-            if let Ok((stream, _)) = l.accept.await{
+            if let Ok((stream, _)) = l.accept().await{
                 let state_for_client = Arc::clone(&sc);
                 tokio::spawn(async move{
                     handleClientConnections(stream, state_for_client).await;
@@ -99,41 +115,20 @@ pub fn run_Server() {
         ticker.tick().await;
         let snapshot = {
             let gs = global_state.read().unwrap();
-            serde_json::to_string(&*gs).unwrap_or_else(|_| "{}".to_string())
-        };
-
-        let clients = server_state.clients.read().unwrap();
-        for (id, client) in clients.iter(){
-            // Only Send diffs of the data
-            if let Err(e) = client.ws_wr.send(Message::Text(snapshot.clone())).await{
-                eprintln!("Failed to send to {} : {}", id, e);
+            let mut buf = Vec::new();
+            for p in &gs.players {
+                buf.extend_from_slice(&p.position.x.to_le_bytes());
+                buf.extend_from_slice(&p.position.y.to_le_bytes());
+                buf.extend_from_slice(&p.position.z.to_le_bytes());
             }
-        }
+
+            let mut clients = server_state.clients.write().unwrap(); // need write access for mutability
+            for (id, client) in clients.iter_mut() {
+                if let Err(e) = client.ws_w.send(Message::Binary(buf.clone().into())).await {
+                    eprintln!("Failed to send to {} : {}", id, e);
+                }
+            }
+        };
     }
 
-}
-
-// Main entry point.
-async fn main() {
-    println!("Run as server or client? (s/c) : ");
-    io::stdout().flush().unwrap();
-    let mut choice = String::new();
-    io::stdin().read_line(&mut choice).unwrap();
-    let choice = choice.trim().to_lowercase();
-
-    match choice.as_str() {
-        "s" => run_Server.await(),
-        "c" => run_Client.await(),
-        _ => println!("Invalid Choice, Please enter 's' or 'c'"),
-    }
-
-    loop {
-        // Represents the game loop ticking frame by frame.
-        // next_frame.await() would typically:
-        // 1. Wait for the duration of one frame (e.g., 16ms for 60 FPS)
-        // 2. Process queued client actions
-        // 3. Update global game state
-        // 4. Broadcast updates/diffs to all clients
-        next_frame.await();
-    }
 }

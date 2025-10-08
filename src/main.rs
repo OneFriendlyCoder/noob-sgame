@@ -5,6 +5,7 @@ mod player;
 mod grid;
 mod infinity;
 mod camera;
+mod server;
 
 use macroquad::prelude::*;
 use utilis::*;
@@ -14,6 +15,7 @@ use player::*;
 use grid::*;
 use camera::*;
 use infinity::*;
+use server::*;
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
