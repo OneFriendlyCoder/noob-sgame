@@ -95,6 +95,11 @@ impl Player{
             self.position = previous_position;
         }
 
+        let (grid_x_min, grid_z_min) = (grid.xmin, grid.zmin);
+        let (grid_x_max, grid_z_max) = (grid.xmax, grid.zmax);
+        self.position.x = self.position.x.clamp(grid_x_min, grid_x_max);
+        self.position.z = self.position.z.clamp(grid_z_min, grid_z_max);
+
         match camera_view {
             CameraView::FirstPerson => {
                 camera.position = self.position;
