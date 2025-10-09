@@ -28,6 +28,7 @@ pub struct Player {
     pub size: Vec3,
     pub shots: Vec<Shot>,
     pub total_points: u32, // new field for points
+    pub best_score: u32,
 }
 
 impl Player{
@@ -48,6 +49,7 @@ impl Player{
             size: vec3(1.0,1.0,1.0),
             shots: vec![],
             total_points: 0,
+            best_score: 0,
         }
     }
 

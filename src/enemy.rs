@@ -9,10 +9,11 @@ pub struct Enemy {
     pub health: i32,
     pub ttl: f32,
     pub weight: u32,
+    pub color: Color, // add this
 }
 
 impl Enemy {
-    pub async fn new(uid: u32, position: Vec3, size: Vec3, ttl: f32, weight: u32) -> Self {    
+    pub async fn new(uid: u32, position: Vec3, size: Vec3, ttl: f32, weight: u32, color:Color) -> Self {    
         Self {
             uid,
             position,
@@ -20,14 +21,14 @@ impl Enemy {
             health: 100,
             ttl,
             weight,
+            color,
         }
     }
 
-    pub fn draw(&self) {
-        let colors = [GREEN, YELLOW, SKYBLUE, ORANGE, PINK];
-        let color = colors[(self.uid as usize) % colors.len()];
-        draw_cube(self.position, self.size, None, color);
-    }
+        pub fn draw(&self) {
+            draw_cube(self.position, self.size, None, self.color);
+        }
+
 
     pub fn update_ttl(&mut self, delta_time: f32) {
         self.ttl -= delta_time;
@@ -53,7 +54,7 @@ impl Enemies {
         for i in 0..size {
             let x = rand::gen_range(xmin, xmax);
             let z = rand::gen_range(zmin, zmax);
-            let ttl = rand::gen_range(3.0, 7.0);
+            let ttl = rand::gen_range(10.0, 30.0);
             let color_idx = (i as usize) % colors.len();
             let weight = match color_idx {
                 0 => 1,
@@ -71,6 +72,7 @@ impl Enemies {
                 vec3(5.0, y_measure, 5.0),
                 ttl,
                 weight,
+                colors[color_idx],
             ).await;
 
             enemies.push(enemy);
