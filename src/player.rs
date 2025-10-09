@@ -128,7 +128,7 @@ impl Player{
                 self.shots.push(Shot{
                     start: o,
                     end: ep,
-                    lifetime: 0.002,
+                    lifetime: 0.0001,
                     hit: false,
                 });
 
@@ -144,7 +144,7 @@ impl Player{
         camera.fovy += (target_fovy - camera.fovy) * 0.2;
 
         for shot in &mut self.shots{
-            draw_line_3d(shot.start, shot.end, BLUE);
+            draw_line_3d(shot.start, shot.end, BLACK);
             shot.lifetime -= get_frame_time();
         }
         self.shots.retain(|s| s.lifetime>0.0);
