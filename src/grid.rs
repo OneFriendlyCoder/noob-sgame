@@ -1,6 +1,8 @@
 
 use macroquad::prelude::*;
 use crate::enemy::*;
+use crate::player::*;
+
 
 pub struct Grid {
     pub cells: Vec<Vec<Vec<usize>>>,
@@ -52,11 +54,12 @@ impl Grid {
 }
 
 
-pub fn init_grid(enemies: &Enemies, xmin: f32, xmax:f32, zmin: f32, zmax: f32, xcells:usize, zcells:usize)-> Grid{
+pub fn init_grid(enemies: &Vec<Player>,xmin: f32,xmax: f32,zmin: f32,zmax: f32,xcells: usize,zcells: usize) -> Grid {
     let mut grid = Grid::new(xmin, xmax, zmin, zmax, xcells, zcells);
-    for(i, enemy) in enemies.enemies.iter().enumerate(){
+    for (i, enemy) in enemies.iter().enumerate() {
         grid.add_enemy(i, enemy.position, enemy.size);
     }
     grid
 }
+
 

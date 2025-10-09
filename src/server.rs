@@ -1,134 +1,124 @@
-// Game server: 
-
-// accept client connections (websockets)
-// authorize the player with the game code and password
-// spawn a thread for each player -> each thread will correspond to an enemy
-// initialize the player's (position, speed, targets shot etc)
-// starts changing the game state based on the inputs of the player
-// render those changes in the game
-// define a struct called game state
-// the server should broadcast the game state each frame(optimization: only the diffs) to all the clients after the changes are made
-
-// defining global state
-
-use macroquad::prelude::*;
 use crate::player::*;
-use std::io::{self, Write};
-use tokio::time::{self, Duration};
-// use serde_json;
-// use serde::Serialize;
-use bytes::Bytes;
+use macroquad::prelude::*;
 use tokio::net::{TcpListener, TcpStream};
-use tokio_tungstenite::{accept_async, connect_async, tungstenite::protocol::Message};
-use tokio_tungstenite::WebSocketStream;
-use futures::stream::*;
-use futures::SinkExt;
+use tokio_tungstenite::{accept_async, tungstenite::protocol::Message, WebSocketStream};
+use futures::{SinkExt, StreamExt};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use tokio::sync::Mutex;
 use uuid::Uuid;
-use tokio::time::Instant;
+use tokio::time::{self, Duration, Instant};
 
-
-struct GlobalState {
-    players: Vec<Player>, 
-    enemies: Vec<Vec<Player>>,      
-
+#[derive(Clone)]
+pub struct GlobalState {
+    pub players: Vec<Player>,
+    pub enemies: Vec<Vec<Player>>,
 }
 
-struct Client {     
-    id: Uuid,               
-    ws_w: SplitSink<WebSocketStream<TcpStream>, Message>,
-    ws_r: SplitStream<WebSocketStream<TcpStream>>,        
-    last_seen: Instant,     
+pub struct Client {
+    pub id: Uuid,
+    pub ws_w: Arc<Mutex<futures::stream::SplitSink<WebSocketStream<TcpStream>, Message>>>,
+    pub ws_r: futures::stream::SplitStream<WebSocketStream<TcpStream>>,
+    pub last_seen: Instant,
 }
 
-struct ServerState{
-    global_state: Arc<RwLock<GlobalState>>,
-    clients: RwLock<HashMap<Uuid, Client>>,
+pub struct ServerState {
+    pub global_state: Arc<RwLock<GlobalState>>,
+    pub clients: RwLock<HashMap<Uuid, Client>>,
 }
 
-async fn handleClientConnections(s:TcpStream, state: Arc<ServerState>) {
-    let ws = match accept_async(s).await{
+async fn handle_client_connections(stream: TcpStream, state: Arc<ServerState>) {
+    let ws = match accept_async(stream).await {
         Ok(ws) => ws,
         Err(e) => {
-            println!("Websocket handshake failed : {}", e);
+            println!("WebSocket handshake failed: {}", e);
             return;
         }
     };
 
     let client_id = Uuid::new_v4();
-    // println!("New client : {}", client_id);
-
-    let(mut w, mut r) = ws.split();
-    let c = Client{
+    let (w, r) = ws.split();
+    let client = Client {
         id: client_id,
         ws_r: r,
-        ws_w: w,
+        ws_w: Arc::new(Mutex::new(w)),
         last_seen: Instant::now(),
     };
-    let mut clients=  state.clients.write().unwrap();
-    clients.insert(client_id, c);
+
+    state.clients.write().unwrap().insert(client_id, client);
+
     let mut gs = state.global_state.write().unwrap();
     let new_player = Player::new(
-    client_id,
-    vec3(0.0, 0.0, 0.0), 
-    vec3(0.0, 0.0, 0.0), 
-    "Player1".to_string(), 
-    "Pistol".to_string(),  
-    0.0,                 
-    0.0                  
+        client_id,
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
+        format!("Player-{}", gs.players.len()),
+        "Shotgun".to_string(),
+        0.0,
+        0.0,
     );
     gs.players.push(new_player);
+
+    // rebuild enemies
+    gs.enemies = (0..gs.players.len())
+        .map(|i| {
+            gs.players
+                .iter()
+                .enumerate()
+                .filter(|(j, _)| *j != i)
+                .map(|(_, p)| p.clone())
+                .collect::<Vec<Player>>()
+        })
+        .collect();
 }
 
-
-pub async fn run_Server() {
+pub async fn run_server(server_state: Arc<ServerState>) {
     let addr = "127.0.0.1:9001";
-    let l = TcpListener::bind(addr).await.unwrap();
-    println!("Server running at : {}", addr);
+    let listener = TcpListener::bind(addr).await.unwrap();
+    println!("Server running at: {}", addr);
 
-    let global_state = Arc::new(RwLock::new(GlobalState{
-        players: Vec::new(),
-        enemies: Vec::new(),
-    }));
-
-    let server_state = Arc::new((ServerState{
-        global_state: Arc::clone(&global_state),            // Arc::clone increase the ref count of the Arc<T>
-        clients: RwLock::new(HashMap::new()),
-    }));
-
-    let sc = Arc::clone(&server_state);
-    tokio::spawn(async move{
-        loop{
-            if let Ok((stream, _)) = l.accept().await{
-                let state_for_client = Arc::clone(&sc);
-                tokio::spawn(async move{
-                    handleClientConnections(stream, state_for_client).await;
+    let server_clone = Arc::clone(&server_state);
+    tokio::spawn(async move {
+        loop {
+            if let Ok((stream, _)) = listener.accept().await {
+                let state_for_client = Arc::clone(&server_clone);
+                tokio::spawn(async move {
+                    handle_client_connections(stream, state_for_client).await;
                 });
             }
         }
     });
 
-
-    let mut ticker = time::interval(Duration::from_millis(1000/60));
-    loop{
+    let mut ticker = time::interval(Duration::from_millis(1000 / 60));
+    loop {
         ticker.tick().await;
-        let snapshot = {
-            let gs = global_state.read().unwrap();
-            let mut buf = Vec::new();
-            for p in &gs.players {
-                buf.extend_from_slice(&p.position.x.to_le_bytes());
-                buf.extend_from_slice(&p.position.y.to_le_bytes());
-                buf.extend_from_slice(&p.position.z.to_le_bytes());
-            }
 
-            let mut clients = server_state.clients.write().unwrap(); // need write access for mutability
-            for (id, client) in clients.iter_mut() {
-                if let Err(e) = client.ws_w.send(Message::Binary(buf.clone().into())).await {
-                    eprintln!("Failed to send to {} : {}", id, e);
-                }
-            }
+        // clone player positions first to avoid holding the lock across .await
+        let player_positions: Vec<Vec3> = {
+            let gs = server_state.global_state.read().unwrap();
+            gs.players.iter().map(|p| p.position).collect()
         };
-    }
 
+        let mut buf = Vec::new();
+        for pos in player_positions {
+            buf.extend_from_slice(&pos.x.to_le_bytes());
+            buf.extend_from_slice(&pos.y.to_le_bytes());
+            buf.extend_from_slice(&pos.z.to_le_bytes());
+        }
+
+        // clone client Arc<Mutex<...>> handles
+        let clients: Vec<Arc<Mutex<futures::stream::SplitSink<WebSocketStream<TcpStream>, Message>>>> =
+            {
+                let clients_map = server_state.clients.read().unwrap();
+                clients_map.values().map(|c| Arc::clone(&c.ws_w)).collect()
+            };
+
+        // send to clients without holding HashMap lock
+        for client_ws in clients {
+            let mut sink = client_ws.lock().await;
+            if let Err(e) = sink.send(Message::Binary(buf.clone().into())).await {
+                eprintln!("Failed to send to client: {}", e);
+            }
+        }
+    }
 }

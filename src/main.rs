@@ -16,9 +16,75 @@ use grid::*;
 use camera::*;
 use infinity::*;
 use server::*;
+use tokio::runtime::Runtime;
+use crate::server::*;
+use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
+use uuid::Uuid;
+
+
+async fn init_player_and_enemies(
+    server_state: Arc<ServerState>,
+    my_uuid: Uuid,
+) -> (Player, Vec<Player>) {
+    loop {
+        let maybe_players = {
+            let gs = server_state.global_state.read().unwrap(); // lock scoped
+            gs.players.clone() // clone data you need
+        };
+
+        if let Some(p) = maybe_players.iter().find(|p| p.id == my_uuid) {
+            let my_player = p.clone();
+            let enemies = maybe_players
+                .iter()
+                .filter(|other| other.id != my_uuid)
+                .cloned()
+                .collect::<Vec<Player>>();
+            return (my_player, enemies);
+        }
+
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+}
+
 
 #[macroquad::main("RUSTY KRUNKER")]
 async fn main() {
+
+    // server state and starting the server
+    let global_state = Arc::new(RwLock::new(GlobalState { players: vec![], enemies: vec![] }));
+    let server_state = Arc::new(ServerState {
+        global_state: Arc::clone(&global_state),
+        clients: RwLock::new(HashMap::new()),
+    });
+    // create local player and store its uuid
+    let my_uuid = Uuid::new_v4();
+    {
+        let mut gs = global_state.write().unwrap();
+        let local_player = Player::new(
+            my_uuid,
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, 0.0),
+            "LocalPlayer".to_string(),
+            "Shotgun".to_string(),
+            0.0,
+            0.0,
+        );
+        gs.players.push(local_player);
+    }
+    // start the server in a background thread
+    let rt = Runtime::new().unwrap();
+    rt.spawn({
+        let server_clone = Arc::clone(&server_state);
+        async move {
+            run_server(server_clone).await;
+        }
+    });
+    // now get local player + current enemies
+    let (mut player, mut enemies) = init_player_and_enemies(Arc::clone(&server_state), my_uuid).await;
+
+
+
     set_pc_assets_folder("./assets/");
     let (screen_h, screen_w, screen_d) = board_size();
     let road_half = 0.01;
@@ -45,7 +111,8 @@ async fn main() {
 
 
     const MOUSE_SENSITIVITY: f32 = 0.005;
-    let mut player: Player = Player::new(vec3(0.0, screen_h * 0.001, 0.0),vec3(0.0, 0.0, 0.0) ,"Player1".to_string(), "Shotgun".to_string(), 0.0, 0.0);
+    // let mut player: Player = Player::new(vec3(0.0, screen_h * 0.001, 0.0),vec3(0.0, 0.0, 0.0) ,"Player1".to_string(), "Shotgun".to_string(), 0.0, 0.0);
+    // let (mut player, mut enemies) = init_player_and_enemies(Arc::clone(&server_state), my_uuid).await;
     let mut camera = Camera3D {
         position: player.position,
         target: player.target,
@@ -63,7 +130,7 @@ async fn main() {
     };
     
     let texture: Texture2D = load_texture("textures/crosshair.png").await.unwrap();
-    let mut enemies = Enemies::init_enemies(10, x_min, x_max, z_min, z_max).await;
+    // let mut enemies = Enemies::init_enemies(10, x_min, x_max, z_min, z_max).await;
     let mut grid = init_grid(&enemies, x_min, x_max, z_min, z_max, 10, 10);
     let mut camera_view = CameraView::FirstPerson; 
 
@@ -116,8 +183,15 @@ async fn main() {
         let strafe_dir = vec3(-forward.z, 0.0, forward.x);
         player.update_player_position(forward, strafe_dir, look, &mut enemies, &mut grid, &mut camera,&mut camera1 ,camera_view);
         
-        enemies.draw_enemies();
-        
+        for e in &enemies {
+            draw_cube(
+                e.position,
+                e.size,
+                None, 
+                BLUE,
+            )
+        }
+
         set_default_camera();   // necessary for drawing 2D UI on the screen, switches drawing context to 2D, all coordinates are screen-pixels
 
         //crosshair 
