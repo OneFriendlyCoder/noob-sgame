@@ -67,7 +67,8 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
-
+        let delta_time = get_frame_time();
+        enemies.update_enemies_grid(delta_time, &mut grid);
         // setting camera based on the person's view
         if is_key_down(KeyCode::V){
             camera_view = CameraView::ThirdPerson;
