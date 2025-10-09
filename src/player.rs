@@ -92,7 +92,6 @@ impl Player{
         }
 
         if detect_collision(enemies, grid, self) {
-            println!("Collision detected");
             self.position = previous_position;
         }
 
@@ -135,7 +134,6 @@ impl Player{
 
                 if let Some(hit_idx) = check_bullet_hit_grid(enemies, grid, self){
                     self.total_points += enemies.enemies[hit_idx].weight;
-                    println!("Total Points : {}", self.total_points);
                 }
             }
             

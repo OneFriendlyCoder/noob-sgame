@@ -50,7 +50,7 @@ impl Enemies {
         let y_measure = 20.0;
         let ground_y = -1.0;
 
-        let colors = [GREEN, SKYBLUE, PINK, YELLOW, DARKGRAY, RED];
+        let colors = [GREEN, SKYBLUE, PINK, YELLOW, WHITE, RED];
         for i in 0..size {
             let x = rand::gen_range(xmin, xmax);
             let z = rand::gen_range(zmin, zmax);
