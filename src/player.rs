@@ -27,7 +27,7 @@ pub struct Player {
     pub is_jumping: bool,
     pub size: Vec3,
     pub shots: Vec<Shot>,
-    pub total_points: u32, // new field for points
+    pub total_points: u32,
     pub best_score: u32,
 }
 
@@ -76,8 +76,6 @@ impl Player{
                 Movement::D => self.position += strafe_dir * self.speed,
             }
         }
-
-        // jump mechanics
         if is_key_pressed(KeyCode::Space) && !self.is_jumping{
             self.velocity_y = 2.0;
             self.is_jumping = true;
@@ -135,9 +133,7 @@ impl Player{
                     hit: false,
                 });
 
-                // check if bullet hits any enemy
                 if let Some(hit_idx) = check_bullet_hit_grid(enemies, grid, self){
-                    // println!("Bullet hit the enemy {}", hit_idx);
                     self.total_points += enemies.enemies[hit_idx].weight;
                     println!("Total Points : {}", self.total_points);
                 }
@@ -156,3 +152,4 @@ impl Player{
         self.shots.retain(|s| s.lifetime>0.0);
     }
 }
+
