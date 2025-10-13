@@ -24,7 +24,7 @@ This codebase implements a minimal shooting experience inspired by arena shooter
 
 ## Demo / Screenshots
 
-[Watch Gameplay Demo](./assets/gameplay/final_game.mkv)
+[Watch Gameplay Demo](./assets/gameplay/demo.mp4)
 
 ---
 
