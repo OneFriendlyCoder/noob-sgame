@@ -4,9 +4,9 @@ A small, hand-built 3D shooting game written in **Rust** using the **macroquad**
 
 ---
 
-## Background (keep it in context)
+## Background
 
-This codebase implements a minimal shooting experience inspired by arena shooters. It focuses on core systems implemented by hand rather than relying on third‑party physics engines: ray-like shooting, bounding-box collision tests, a grid spatial partitioning to reduce checks, and two camera modes (first- and third-person). The aim is educational: to show how these systems fit together in Rust + macroquad and to be a starting point for further experimentation.
+This codebase implements a minimal shooting experience inspired by arena shooters. It focuses on core systems implemented by hand rather than relying on third‑party physics engines: ray-like shooting, bounding-box collision tests, a grid spatial partitioning to reduce checks, and two camera modes (first- and third-person).
 
 ---
 
@@ -24,7 +24,7 @@ This codebase implements a minimal shooting experience inspired by arena shooter
 
 ## Demo / Screenshots
 
-Place any screenshots / short GIFs in `/assets/` and reference them in the repository README or GitHub description. The project already expects a crosshair texture at `assets/textures/crosshair.png`.
+[Watch Gameplay Demo](./assets/gameplay/final_game.mkv)
 
 ---
 
@@ -49,8 +49,8 @@ Place any screenshots / short GIFs in `/assets/` and reference them in the repos
 1. Clone this repository:
 
 ```bash
-git clone <repo-url>
-cd rusty-krunker
+git clone https://github.com/OneFriendlyCoder/rustyKrunker.git
+cd rustyKrunker
 ```
 
 2. Ensure assets exist in the `assets/` folder. The game calls `set_pc_assets_folder("./assets/")` so the folder should be present in the project root. At minimum include `assets/textures/crosshair.png`.
@@ -176,19 +176,9 @@ You can tweak gameplay by modifying constants and parameters in `main.rs` and ot
 
 ---
 
-## Contributing
-
-Contributions are welcome — small PRs that improve code organization, add tests, or fix small bugs are ideal. If you add features, please:
-
-* Keep modules focused and small.
-* Update README and document any new assets required.
-* Add comments explaining non-trivial math (e.g. grid indexing, ray stepping).
-
----
-
 ## License
 
-This project is provided under the **MIT License**. See `LICENSE` for details (or add one if you plan to publish).
+This project is provided under the **MIT License**. See `LICENSE` for details
 
 ---
 
