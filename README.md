@@ -24,10 +24,8 @@ This codebase implements a minimal shooting experience inspired by arena shooter
 
 ## Demo
 
-<video width="600" controls>
-  <source src="./assets/gameplay/demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Gameplay Demo](./assets/gameplay/demo.gif)
+
 
 ---
 
